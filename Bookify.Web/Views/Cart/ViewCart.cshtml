@@ -1,0 +1,148 @@
+@model Bookify.Core.ViewModels.CartViewModel
+@{
+    ViewData["Title"] = "Shopping Cart";
+}
+
+<section class="cart-hero shadow-hover mb-4">
+    <div>
+        <p class="eyebrow-text text-uppercase">Itinerary</p>
+        <h1 class="mb-2">Reservation Cart</h1>
+        <p class="text-muted mb-0">Review suites before securing your stay.</p>
+    </div>
+    <a href="@Url.Action("Index", "Rooms")" class="btn btn-outline-gold">
+        <i class="bi bi-arrow-left"></i> Continue Curating
+    </a>
+</section>
+
+@if (Model.Items.Any())
+{
+    <div class="row g-4">
+        <div class="col-lg-8">
+            @foreach (var item in Model.Items)
+            {
+                var fallbackImage = string.IsNullOrEmpty(item.ImageUrl)
+                    ? "https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=900&q=80"
+                    : item.ImageUrl;
+                <article class="cart-room-card shadow-hover">
+                    <div class="cart-room-media">
+                        <img src="@fallbackImage" alt="@item.RoomNumber" />
+                        <span class="price-pill">$@item.PricePerNight<span>/night</span></span>
+                    </div>
+                    <div class="cart-room-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <span class="badge-muted">@item.RoomTypeName</span>
+                                <h3 class="mt-1 mb-0">@item.RoomNumber</h3>
+                            </div>
+                            <button class="icon-action" type="button" onclick="removeFromCart('@item.CartItemId')" aria-label="Remove room">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-muted small mb-3">@item.RoomTypeName</p>
+                        <div class="cart-room-meta">
+                            <div>
+                                <span>Check in</span>
+                                <strong>@item.CheckIn.ToString("MMM dd, yyyy")</strong>
+                            </div>
+                            <div>
+                                <span>Check out</span>
+                                <strong>@item.CheckOut.ToString("MMM dd, yyyy")</strong>
+                            </div>
+                            <div>
+                                <span>Nights</span>
+                                <strong>@item.Nights</strong>
+                            </div>
+                        </div>
+                        <div class="amenities-inline mt-3">
+                            <span><i class="bi bi-wifi"></i> Wi-Fi</span>
+                            <span><i class="bi bi-droplet"></i> Spa Bath</span>
+                            <span><i class="bi bi-moon-stars"></i> Night Butler</span>
+                        </div>
+                        <div class="d-flex justify-content-end mt-3">
+                            <div class="text-end">
+                                <span class="text-muted small">Subtotal</span>
+                                <div class="cart-subtotal">$@item.SubTotal</div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+        <div class="col-lg-4">
+            <aside class="invoice-card shadow-hover">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <p class="eyebrow-text mb-1">Order Summary</p>
+                        <h4 class="mb-0">Stay Overview</h4>
+                    </div>
+                    <span class="badge-muted">@Model.Items.Count() rooms</span>
+                </div>
+                <div class="invoice-line">
+                    <span>Subtotal</span>
+                    <strong>$@Model.TotalAmount</strong>
+                </div>
+                <div class="invoice-line">
+                    <span>Taxes & Fees</span>
+                    <strong>$0.00</strong>
+                </div>
+                <hr>
+                <div class="invoice-total">
+                    <span>Total Due</span>
+                    <span>$@Model.TotalAmount</span>
+                </div>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a href="@Url.Action("Checkout", "Booking")" class="btn btn-gold w-100 mt-3">
+                        <i class="bi bi-credit-card"></i> Proceed to Checkout
+                    </a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Account", new { returnUrl = Url.Action("Checkout", "Booking") })" class="btn btn-gold w-100 mt-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Login to Checkout
+                    </a>
+                }
+                <p class="text-muted small text-center mt-3">Rates are held for 15 minutes while you complete checkout.</p>
+            </aside>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert-admin alert-info-admin text-center">
+        <i class="bi bi-cart-x" style="font-size: 3rem;"></i>
+        <h4 class="mt-3">Your Cart is Empty</h4>
+        <p>Start adding rooms to your cart to begin your booking journey!</p>
+        <a href="@Url.Action("Index", "Rooms")" class="btn btn-outline-gold mt-2">
+            <i class="bi bi-search"></i> Browse Rooms
+        </a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function removeFromCart(cartItemId) {
+            if (confirm('Are you sure you want to remove this item from your cart?')) {
+                fetch('@Url.Action("RemoveFromCart", "Cart")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cartItemId: cartItemId })
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        toastr.success('Item removed from cart', 'Success');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 500);
+                    } else {
+                        toastr.error('Error removing item from cart', 'Error');
+                    }
+                }).catch(error => {
+                    toastr.error('An error occurred', 'Error');
+                });
+            }
+        }
+    </script>
+}
+

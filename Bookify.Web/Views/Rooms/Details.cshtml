@@ -1,0 +1,177 @@
+@model Bookify.Core.DTOs.RoomDto
+@{
+    ViewData["Title"] = "Room Details";
+}
+
+<section class="section-lux container-xl">
+    <div class="mb-4">
+        <div class="breadcrumb-lux mb-2">
+            <a asp-controller="Home" asp-action="Index">Home</a> /
+            <a asp-controller="Rooms" asp-action="Index">Rooms</a> /
+            <span>@Model.RoomTypeName</span>
+        </div>
+        <h1>@Model.RoomTypeName · Suite @Model.RoomNumber</h1>
+        <p class="text-muted">Elevated living with curated services for up to @Model.Capacity guests.</p>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-lg-8">
+            @if (Model.ImageUrls.Any())
+            {
+                <div id="roomCarousel" class="carousel slide shadow-hover" data-bs-ride="carousel">
+                    <div class="carousel-inner">
+                        @for (int i = 0; i < Model.ImageUrls.Count; i++)
+                        {
+                            <div class="carousel-item @(i == 0 ? "active" : "")">
+                                <img src="@Model.ImageUrls[i]" class="d-block w-100 rounded" alt="Room Image @(i + 1)" style="height: 480px; object-fit: cover;">
+                            </div>
+                        }
+                    </div>
+                    @if (Model.ImageUrls.Count > 1)
+                    {
+                        <button class="carousel-control-prev" type="button" data-bs-target="#roomCarousel" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#roomCarousel" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                    }
+                </div>
+            }
+
+            <div class="lux-card mt-4">
+                <h3 class="mb-3">About this Suite</h3>
+                <p class="text-muted">@Model.Description</p>
+                <div class="amenities-inline mt-3">
+                    <span><i class="bi bi-people"></i> @Model.Capacity Guests</span>
+                    <span><i class="bi bi-building"></i> Floor @Model.Floor</span>
+                    <span><i class="bi bi-broadcast-pin"></i> Skyline View</span>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Amenities))
+            {
+                <div class="lux-card mt-4">
+                    <h4 class="mb-3">Included Amenities</h4>
+                    <p>@Model.Amenities</p>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="booking-widget">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <span class="badge-muted">Suite</span>
+                        <h4 class="mt-2">@Model.RoomTypeName</h4>
+                    </div>
+                    <div class="text-end">
+                        <div class="price-highlight">$@Model.BasePricePerNight</div>
+                        <span>/night</span>
+                    </div>
+                </div>
+                <hr>
+                <form id="addToCartForm">
+                    <input type="hidden" id="roomId" value="@Model.Id" />
+                    <div class="mb-3">
+                        <label class="form-label">Check In</label>
+                        <input type="date" id="checkIn" class="form-control" required min="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                        <div class="invalid-feedback">Please select a valid check-in date</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Check Out</label>
+                        <input type="date" id="checkOut" class="form-control" required min="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")" />
+                        <div class="invalid-feedback">Please select a valid check-out date</div>
+                    </div>
+                    <div id="dateError" class="alert alert-danger d-none"></div>
+                    <button type="submit" class="btn btn-gold w-100">
+                        <i class="bi bi-calendar-plus"></i> Reserve This Suite
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        document.getElementById('addToCartForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const checkIn = document.getElementById('checkIn').value;
+            const checkOut = document.getElementById('checkOut').value;
+            const dateError = document.getElementById('dateError');
+            
+            // Validate dates
+            if (!checkIn || !checkOut) {
+                dateError.textContent = 'Please select both check-in and check-out dates';
+                dateError.classList.remove('d-none');
+                return;
+            }
+            
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            if (checkInDate < today) {
+                dateError.textContent = 'Check-in date cannot be in the past';
+                dateError.classList.remove('d-none');
+                return;
+            }
+            
+            if (checkOutDate <= checkInDate) {
+                dateError.textContent = 'Check-out date must be after check-in date';
+                dateError.classList.remove('d-none');
+                return;
+            }
+            
+            dateError.classList.add('d-none');
+            
+            const submitButton = this.querySelector('button[type="submit"]');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading-spinner"></span> Adding...';
+            
+            const data = {
+                roomId: parseInt(document.getElementById('roomId').value),
+                checkIn: checkIn,
+                checkOut: checkOut
+            };
+            
+            try {
+                const response = await fetch('@Url.Action("AddToCart", "Cart")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    toastr.success('Room added to cart successfully!', 'Success');
+                    setTimeout(() => {
+                        window.location.href = '@Url.Action("ViewCart", "Cart")';
+                    }, 1000);
+                } else {
+                    toastr.error(result.message || 'Error adding room to cart', 'Error');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                }
+            } catch (error) {
+                toastr.error('An error occurred: ' + error.message, 'Error');
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+        
+        // Update check-out minimum date when check-in changes
+        document.getElementById('checkIn').addEventListener('change', function() {
+            const checkInDate = new Date(this.value);
+            checkInDate.setDate(checkInDate.getDate() + 1);
+            document.getElementById('checkOut').min = checkInDate.toISOString().split('T')[0];
+        });
+    </script>
+}
+

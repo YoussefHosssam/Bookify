@@ -1,0 +1,74 @@
+@model Bookify.Web.Controllers.RegisterViewModel
+@{
+    ViewData["Title"] = "Register";
+    var returnUrl = ViewData["ReturnUrl"] as string ?? Url.Action("Index", "Home");
+}
+
+<section class="auth-hero">
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div class="brand-monogram mx-auto mb-3">B</div>
+            <h2 class="fw-bold text-uppercase">Create Your Profile</h2>
+            <p class="text-muted small letter-spacing">Unlock curated residences and concierge privileges</p>
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger fade-in">
+                <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+            </div>
+        }
+
+        <form asp-action="Register" method="post" asp-route-returnUrl="@returnUrl">
+            @Html.AntiForgeryToken()
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="UserName" class="form-label"></label>
+                <input asp-for="UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="Choose a username" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+                <small class="form-text text-muted">3-50 characters, letters, numbers, and underscores only</small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter your email address" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+                <small class="form-text text-muted">
+                    Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.
+                </small>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" />
+                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </button>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="mb-0">
+                    Already have an account? 
+                    <a asp-action="Login" asp-route-returnUrl="@returnUrl" class="fw-bold">Login here</a>
+                </p>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

@@ -1,0 +1,47 @@
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+
+<div class="auth-menu d-flex align-items-center gap-2">
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    <div class="dropdown">
+        <button class="btn btn-dark d-flex align-items-center gap-2 auth-user-btn" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(user?.UserName ?? "User")&background=0E1B2A&color=fff&size=64"
+                 class="rounded-circle" width="36" height="36" alt="User avatar" />
+            <span>@(user?.UserName ?? User.Identity?.Name)</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+            <li>
+                <a class="dropdown-item" asp-controller="Profile" asp-action="Index">
+                    <i class="bi bi-person-circle"></i> Profile
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" asp-area="" asp-controller="Booking" asp-action="UserBookings">
+                    <i class="bi bi-calendar-check"></i> My Bookings
+                </a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+                <form asp-controller="Account" asp-action="Logout" method="post" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="dropdown-item">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </button>
+                </form>
+            </li>
+        </ul>
+    </div>
+}
+else
+{
+    <a class="btn btn-ghost-light" asp-controller="Account" asp-action="Login">
+        Login
+    </a>
+    <a class="btn btn-gold" asp-controller="Account" asp-action="Register">
+        Register
+    </a>
+}
+</div>

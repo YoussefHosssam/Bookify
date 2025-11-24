@@ -1,0 +1,153 @@
+@model Bookify.Core.ViewModels.CheckoutViewModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h1>Checkout</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4 summary-card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> Booking Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Nights</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Cart.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@item.RoomNumber</strong><br>
+                                        <small class="text-muted">@item.RoomTypeName</small>
+                                    </td>
+                                    <td>@item.CheckIn.ToString("MMM dd, yyyy")</td>
+                                    <td>@item.CheckOut.ToString("MMM dd, yyyy")</td>
+                                    <td>@item.Nights</td>
+                                    <td class="text-end"><strong>$@item.SubTotal</strong></td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <th colspan="4" class="text-end">Total Amount:</th>
+                                <th class="text-end"><span class="price-badge">$@Model.Cart.TotalAmount</span></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card summary-card">
+            <div class="card-header">
+                <h5>Payment Information</h5>
+            </div>
+            <div class="card-body">
+                <form id="checkoutForm" data-validate>
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email Address</label>
+                        <input type="email" class="form-control" value="@Model.Email" readonly />
+                        <small class="text-muted">This email will receive booking confirmation</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">First Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="firstName" value="@Model.FirstName" required />
+                        <div class="invalid-feedback">Please provide your first name</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Last Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="lastName" value="@Model.LastName" required />
+                        <div class="invalid-feedback">Please provide your last name</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Phone Number</label>
+                        <input type="tel" class="form-control" name="phoneNumber" value="@Model.PhoneNumber" placeholder="(555) 123-4567" />
+                        <small class="text-muted">Optional - for booking updates</small>
+                    </div>
+                    <div id="payment-message" class="mt-3"></div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-golden btn-lg mt-3" id="submit-button">
+                            <i class="bi bi-credit-card"></i> Pay $@Model.Cart.TotalAmount
+                        </button>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <p class="text-muted small mb-1">
+                            <i class="bi bi-shield-check text-success"></i> Secure payment powered by Stripe
+                        </p>
+                        <p class="text-muted small">
+                            You will be redirected to Stripe Checkout to complete your payment securely.
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('checkoutForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('submit-button');
+            const originalText = submitButton.innerHTML;
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="loading-spinner"></span> Processing...';
+
+            try {
+                const formData = new FormData(document.getElementById('checkoutForm'));
+                const requestData = {
+                    firstName: formData.get('firstName') || '@Model.FirstName',
+                    lastName: formData.get('lastName') || '@Model.LastName',
+                    email: '@Model.Email',
+                    phoneNumber: formData.get('phoneNumber') || '@Model.PhoneNumber'
+                };
+                
+                // Create booking and get Stripe Checkout URL
+                const response = await fetch('@Url.Action("Confirm", "Booking")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+                if (result.success && result.checkoutUrl) {
+                    toastr.info('Redirecting to secure payment page...', 'Processing', { timeOut: 2000 });
+                    // Redirect to Stripe Checkout
+                    setTimeout(() => {
+                        window.location.href = result.checkoutUrl;
+                    }, 500);
+                } else {
+                    const messageDiv = document.getElementById('payment-message');
+                    messageDiv.innerHTML = '<div class="alert alert-danger fade-in"><i class="bi bi-exclamation-triangle-fill"></i> ' + (result.message || 'Error creating checkout session. Please try again.') + '</div>';
+                    toastr.error(result.message || 'Error creating checkout session', 'Error');
+                    submitButton.disabled = false;
+                    submitButton.innerHTML = originalText;
+                }
+            } catch (error) {
+                const messageDiv = document.getElementById('payment-message');
+                messageDiv.innerHTML = '<div class="alert alert-danger fade-in"><i class="bi bi-exclamation-triangle-fill"></i> Error: ' + error.message + '</div>';
+                toastr.error('An error occurred: ' + error.message, 'Error');
+                submitButton.disabled = false;
+                submitButton.innerHTML = originalText;
+            }
+        });
+    </script>
+}
+

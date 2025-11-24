@@ -1,0 +1,198 @@
+﻿@model IEnumerable<Bookify.Core.DTOs.RoomDto>
+@{
+    ViewData["Title"] = "Experience Luxury. Discover Comfort.";
+}
+
+<section class="hero-lux">
+    <div class="hero-media">
+        <div class="hero-slide" style="background-image:url('/images/hero/hero-1.jpg');"></div>
+        <div class="hero-slide" style="background-image:url('/images/hero/hero-2.jpg');"></div>
+        <div class="hero-slide" style="background-image:url('/images/hero/hero-3.jpg');"></div>
+        <div class="hero-overlay"></div>
+    </div>
+    <div class="container-xl hero-content">
+        <p class="eyebrow-text">Bookify Private Collection</p>
+        <h1>Experience Luxury.<br />Discover Comfort.</h1>
+        <p class="hero-subtext">
+            Curated stays, signature service, and iconic destinations inspired by the world’s most celebrated hotels.
+        </p>
+        <div class="hero-ctas">
+            <a href="@Url.Action("Index", "Rooms")" class="btn btn-gold btn-lg">
+                <i class="bi bi-calendar2-check"></i> Book Your Stay
+            </a>
+            <a href="@Url.Action("Index", "Rooms")" class="btn btn-ghost-light btn-lg">
+                Explore Rooms <i class="bi bi-arrow-up-right"></i>
+            </a>
+        </div>
+        <div class="hero-stats">
+            <div>
+                <span>120+</span>
+                Boutique Suites
+            </div>
+            <div>
+                <span>60+</span>
+                Global Destinations
+            </div>
+            <div>
+                <span>4.9/5</span>
+                Guest Satisfaction
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-lux rooms-preview container-xl">
+    <div class="section-heading text-center">
+        <p class="eyebrow-text">Signature Stays</p>
+        <h2>Elevated Rooms & Private Residences</h2>
+        <p class="section-subtext">Handpicked accommodations combining modern design, thoughtful amenities, and refined hospitality.</p>
+    </div>
+    <div class="row g-4">
+        @foreach (var room in Model)
+        {
+            var fallbackImage = room.ImageUrls.FirstOrDefault() ?? "https://images.unsplash.com/photo-1501117716987-c8e1ecb210b0?auto=format&fit=crop&w=900&q=80";
+            <div class="col-lg-4 col-md-6">
+                <article class="room-highlight-card">
+                    <div class="room-card-media">
+                        <div class="wishlist-heart"><i class="bi bi-heart"></i></div>
+                        <img src="@fallbackImage" alt="@room.RoomTypeName" loading="lazy" />
+                        <div class="price-pill">$@room.BasePricePerNight<span>/night</span></div>
+                    </div>
+                    <div class="room-card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge badge-muted">@room.Capacity Guests</span>
+                            <div class="rating">
+                                <i class="bi bi-star-fill"></i>
+                                <span>4.8</span>
+                            </div>
+                        </div>
+                        <h3>@room.RoomTypeName</h3>
+                        <p>@room.Description</p>
+                        <div class="amenities-inline">
+                            <span><i class="bi bi-wifi"></i> Wi-Fi</span>
+                            <span><i class="bi bi-droplet"></i> Spa Bath</span>
+                            <span><i class="bi bi-moon-stars"></i> Night Butler</span>
+                        </div>
+                        <div class="d-flex gap-2 mt-3">
+                            <a href="@Url.Action("Details", "Rooms", new { id = room.Id })" class="btn btn-outline-gold w-50">View Details</a>
+                            <a href="@Url.Action("Details", "Rooms", new { id = room.Id })" class="btn btn-gold w-50">Book Now</a>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        }
+    </div>
+    <div class="text-center mt-4">
+        <a href="@Url.Action("Index", "Rooms")" class="btn btn-ghost-dark">
+            Browse All Residences <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</section>
+
+<section class="section-lux split-section container-xl">
+    <div class="row g-4 align-items-center">
+        <div class="col-lg-6">
+            <div class="lux-card gradient-card">
+                <h3>Personal Concierge & Tailored Itineraries</h3>
+                <p>From airport transfers to Michelin experiences, your dedicated team curates every detail before arrival.</p>
+                <ul class="lux-list">
+                    <li><i class="bi bi-check-circle"></i> 24/7 concierge chat + phone</li>
+                    <li><i class="bi bi-check-circle"></i> Private car and yacht arrangements</li>
+                    <li><i class="bi bi-check-circle"></i> In-suite dining & spa experiences</li>
+                </ul>
+                <a href="@Url.Action("Contact", "Home")" class="btn btn-outline-gold mt-3">Plan Your Journey</a>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="amenities-grid">
+                <article>
+                    <i class="bi bi-water"></i>
+                    <h4>Infinity Pools</h4>
+                    <p>Temperature-controlled pools with skyline or ocean views.</p>
+                </article>
+                <article>
+                    <i class="bi bi-spa"></i>
+                    <h4>Holistic Spa</h4>
+                    <p>Bespoke treatments designed by master therapists.</p>
+                </article>
+                <article>
+                    <i class="bi bi-wifi"></i>
+                    <h4>Ultra-fast Wi-Fi</h4>
+                    <p>Secure high-speed connections in every suite.</p>
+                </article>
+                <article>
+                    <i class="bi bi-cup-hot"></i>
+                    <h4>Private Dining</h4>
+                    <p>Chef-curated menus served in-suite or on terrace.</p>
+                </article>
+                <article>
+                    <i class="bi bi-gem"></i>
+                    <h4>VIP Upgrades</h4>
+                    <p>Complimentary late checkout & curated amenities.</p>
+                </article>
+                <article>
+                    <i class="bi bi-broadcast-pin"></i>
+                    <h4>Prime Locations</h4>
+                    <p>Iconic neighborhoods minutes from cultural landmarks.</p>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-lux testimonials-section">
+    <div class="container-xl">
+        <div class="section-heading text-center text-light">
+            <p class="eyebrow-text text-light">Guest Stories</p>
+            <h2 class="text-white">“Every detail felt curated just for us.”</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <article class="testimonial-card">
+                    <div class="avatar">
+                        <img src="/images/avatars/guest-1.jpg" alt="Guest" />
+                    </div>
+                    <p>“Bookify arranged a private sunset cruise within hours. Seamless and unforgettable.”</p>
+                    <div class="testimonial-meta">
+                        <strong>Olivia M.</strong>
+                        <span>Paris Collection</span>
+                    </div>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="testimonial-card">
+                    <div class="avatar">
+                        <img src="/images/avatars/guest-2.jpg" alt="Guest" />
+                    </div>
+                    <p>“From the welcome tea ceremony to the midnight butler, hospitality felt instinctive.”</p>
+                    <div class="testimonial-meta">
+                        <strong>Marcus V.</strong>
+                        <span>Kyoto Pavilion</span>
+                    </div>
+                </article>
+            </div>
+            <div class="col-md-4">
+                <article class="testimonial-card">
+                    <div class="avatar">
+                        <img src="/images/avatars/guest-3.jpg" alt="Guest" />
+                    </div>
+                    <p>“The booking experience mirrored a private members club—refined, intuitive, exclusive.”</p>
+                    <div class="testimonial-meta">
+                        <strong>Sophia L.</strong>
+                        <span>New York Penthouse</span>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section-lux container-xl">
+    <div class="cta-banner">
+        <div>
+            <p class="eyebrow-text">Private Clients</p>
+            <h3>Need full itinerary design, villa buyouts, or bespoke corporate retreats?</h3>
+        </div>
+        <a href="@Url.Action("Contact", "Home")" class="btn btn-gold btn-lg">Connect with Concierge</a>
+    </div>
+</section>

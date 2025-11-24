@@ -1,0 +1,191 @@
+@model Bookify.Core.ViewModels.PagedResult<Bookify.Core.DTOs.RoomDto>
+@{
+    ViewData["Title"] = "Available Rooms";
+    var roomTypes = ViewBag.RoomTypes as IEnumerable<Bookify.Core.DTOs.RoomTypeDto> ?? new List<Bookify.Core.DTOs.RoomTypeDto>();
+}
+
+<section class="section-lux room-catalog container-xl">
+    <div class="section-heading text-center">
+        <p class="eyebrow-text">Select Your Stay</p>
+        <h2>Available Residences</h2>
+        <p class="section-subtext">Tailor your search with refined filters and discover suites curated for every travel story.</p>
+    </div>
+
+    <form method="get" asp-action="Index" id="roomSearchForm">
+        <input type="hidden" name="Page" value="1" />
+        <div class="room-catalog-layout flex-column flex-lg-row">
+            <aside class="col-lg-3">
+                <div class="filter-panel">
+                    <div class="filter-group">
+                        <h4>Stay Dates</h4>
+                        <div class="mb-3">
+                            <label class="form-label">Check In</label>
+                            <input type="date" name="CheckIn" class="form-control" value="@(ViewBag.CheckIn ?? DateTime.Today.AddDays(1).ToString("yyyy-MM-dd"))" />
+                        </div>
+                        <div>
+                            <label class="form-label">Check Out</label>
+                            <input type="date" name="CheckOut" class="form-control" value="@(ViewBag.CheckOut ?? DateTime.Today.AddDays(2).ToString("yyyy-MM-dd"))" />
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Room Type</h4>
+                        <select name="TypeId" class="form-select">
+                            <option value="">All Experiences</option>
+                            @foreach (var type in roomTypes)
+                            {
+                                <option value="@type.Id" selected="@(ViewBag.TypeId != null && ViewBag.TypeId == type.Id ? "selected" : null)">@type.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Guests</h4>
+                        <input type="number" name="Adults" class="form-control" min="1" value="@(ViewBag.Adults ?? 1)" />
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>Amenities</h4>
+                        <label class="filter-chip">
+                            <input type="checkbox" name="amenities" value="spa" class="form-check-input me-2" /> Spa & Wellness
+                        </label>
+                        <label class="filter-chip">
+                            <input type="checkbox" name="amenities" value="pool" class="form-check-input me-2" /> Infinity Pool
+                        </label>
+                        <label class="filter-chip">
+                            <input type="checkbox" name="amenities" value="butler" class="form-check-input me-2" /> Private Butler
+                        </label>
+                        <label class="filter-chip">
+                            <input type="checkbox" name="amenities" value="view" class="form-check-input me-2" /> Skyline View
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-gold w-100 mt-3">
+                        <i class="bi bi-sliders"></i> Refine Results
+                    </button>
+                </div>
+            </aside>
+
+            <div class="col-lg-9">
+                <div class="sort-bar">
+                    <div class="breadcrumb-lux">
+                        <a asp-controller="Home" asp-action="Index">Home</a> /
+                        <span>Rooms</span>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <span class="text-muted small text-uppercase">Sort by</span>
+                        <select class="form-select form-select-sm" name="SortBy" onchange="document.getElementById('roomSearchForm').submit();">
+                            <option value="popular" selected="@(ViewBag.SortBy == "popular" ? "selected" : null)">Most Popular</option>
+                            <option value="price-asc" selected="@(ViewBag.SortBy == "price-asc" ? "selected" : null)">Price (Low to High)</option>
+                            <option value="price-desc" selected="@(ViewBag.SortBy == "price-desc" ? "selected" : null)">Price (High to Low)</option>
+                            <option value="rating" selected="@(ViewBag.SortBy == "rating" ? "selected" : null)">Guest Rating</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                <div class="row g-4">
+                    @if (Model.Items.Any())
+                    {
+                        @foreach (var room in Model.Items)
+                        {
+                            var fallbackImage = room.ImageUrls.FirstOrDefault() ?? "https://images.unsplash.com/photo-1505691723518-36a5ac3be353?auto=format&fit=crop&w=900&q=80";
+                            <div class="col-md-6">
+                                <article class="room-card-premium position-relative">
+                                    <div class="position-relative">
+                                        <img src="@fallbackImage" alt="@room.RoomNumber" loading="lazy" />
+                                        <button type="button" class="wishlist-floating btn btn-sm btn-dark border-0">
+                                            <i class="bi bi-heart"></i>
+                                        </button>
+                                        <span class="price-pill">$@room.BasePricePerNight<span>/night</span></span>
+                                    </div>
+                                    <div class="room-card-meta">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="badge-muted">Suite @room.RoomNumber</span>
+                                            <span class="rating"><i class="bi bi-star-fill"></i> 4.9</span>
+                                        </div>
+                                        <h3 class="h5 mb-1">@room.RoomTypeName</h3>
+                                        <p class="text-muted">@room.Description</p>
+                                        <div class="amenities-row">
+                                            <span><i class="bi bi-people"></i> @room.Capacity guests</span>
+                                            <span><i class="bi bi-building"></i> Floor @room.Floor</span>
+                                            <span><i class="bi bi-door-open"></i> @room.RoomNumber</span>
+                                        </div>
+                                        <div class="d-flex gap-2 mt-3">
+                                            <a href="@Url.Action("Details", new { id = room.Id })" class="btn btn-outline-gold w-50">View Details</a>
+                                            <a href="@Url.Action("Details", new { id = room.Id })" class="btn btn-gold w-50">Book Now</a>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-info luxe-alert text-center">
+                                <i class="bi bi-inbox"></i>
+                                <h4 class="mt-3">No Rooms Available</h4>
+                                <p class="text-muted">Please adjust your dates or filters to discover additional suites.</p>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-4">
+                        <ul class="pagination justify-content-center luxe-pagination">
+                        <li class="page-item @(!Model.HasPreviousPage ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(Model.Page - 1)"
+                               asp-route-SortBy="@ViewBag.SortBy"
+                               asp-route-CheckIn="@ViewBag.CheckIn"
+                               asp-route-CheckOut="@ViewBag.CheckOut"
+                               asp-route-TypeId="@ViewBag.TypeId"
+                               asp-route-Adults="@ViewBag.Adults"
+                               aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                            @for (int i = 1; i <= Model.TotalPages; i++)
+                            {
+                                <li class="page-item @(i == Model.Page ? "active" : "")">
+                                <a class="page-link"
+                                   asp-action="Index"
+                                   asp-route-page="@i"
+                                   asp-route-SortBy="@ViewBag.SortBy"
+                                   asp-route-CheckIn="@ViewBag.CheckIn"
+                                   asp-route-CheckOut="@ViewBag.CheckOut"
+                                   asp-route-TypeId="@ViewBag.TypeId"
+                                   asp-route-Adults="@ViewBag.Adults">@i</a>
+                                </li>
+                            }
+                        <li class="page-item @(!Model.HasNextPage ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-action="Index"
+                               asp-route-page="@(Model.Page + 1)"
+                               asp-route-SortBy="@ViewBag.SortBy"
+                               asp-route-CheckIn="@ViewBag.CheckIn"
+                               asp-route-CheckOut="@ViewBag.CheckOut"
+                               asp-route-TypeId="@ViewBag.TypeId"
+                               asp-route-Adults="@ViewBag.Adults"
+                               aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        </ul>
+                    </nav>
+                }
+            </div>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <script>
+        validateDates('checkIn', 'checkOut');
+    </script>
+}
+

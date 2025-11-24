@@ -1,0 +1,15 @@
+D:\DEPI_NET\CursorMVC\Bookify.Data\bin\Debug\net8.0\Bookify.Data.deps.json
+D:\DEPI_NET\CursorMVC\Bookify.Data\bin\Debug\net8.0\Bookify.Data.dll
+D:\DEPI_NET\CursorMVC\Bookify.Data\bin\Debug\net8.0\Bookify.Data.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Data\bin\Debug\net8.0\Bookify.Core.dll
+D:\DEPI_NET\CursorMVC\Bookify.Data\bin\Debug\net8.0\Bookify.Core.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.csproj.AssemblyReference.cache
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.GeneratedMSBuildEditorConfig.editorconfig
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.AssemblyInfoInputs.cache
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.AssemblyInfo.cs
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.csproj.CoreCompileInputs.cache
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify..185FC544.Up2Date
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.dll
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\refint\Bookify.Data.dll
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\Bookify.Data.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Data\obj\Debug\net8.0\ref\Bookify.Data.dll

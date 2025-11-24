@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin - Bookify</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/custom.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Bookify.Web.styles.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <div class="admin-wrapper">
+        <!-- Main Content Area -->
+        <div class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="brand-monogram">B</div>
+                        <div>
+                            <p class="eyebrow-text text-white mb-1">Bookify Control</p>
+                            <h5 class="mb-0 text-white">@ViewData["Title"]</h5>
+                        </div>
+                    </div>
+                    <nav class="admin-top-nav d-none d-lg-flex">
+                        <a class="admin-top-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")"
+                           asp-area="Admin" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                        <a class="admin-top-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Bookings" ? "active" : "")"
+                           asp-area="Admin" asp-controller="Bookings" asp-action="Index">Bookings</a>
+                        <a class="admin-top-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Rooms" ? "active" : "")"
+                           asp-area="Admin" asp-controller="Rooms" asp-action="Index">Rooms</a>
+                        <a class="admin-top-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "RoomTypes" ? "active" : "")"
+                           asp-area="Admin" asp-controller="RoomTypes" asp-action="Index">Room Types</a>
+                        <a class="admin-top-link" asp-area="" asp-controller="Home" asp-action="Index">Back to Site</a>
+                    </nav>
+                    <div class="admin-header-tools d-flex align-items-center gap-3 flex-wrap">
+                        <a class="icon-action" href="/Profile" aria-label="Profile">
+                            <i class="bi bi-person"></i>
+                        </a>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-gold btn-sm">
+                                <i class="bi bi-box-arrow-right"></i> Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="admin-content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert-admin alert-success-admin fade-in">
+                        <i class="bi bi-check-circle-fill"></i> @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert-admin alert-danger-admin fade-in">
+                        <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @if (TempData["Info"] != null)
+                {
+                    <div class="alert-admin alert-info-admin fade-in">
+                        <i class="bi bi-info-circle-fill"></i> @TempData["Info"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="admin-menu-toggle d-md-none" id="sidebarToggle">
+        <i class="bi bi-list"></i>
+    </button>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <script>
+        // Configure Toastr for admin
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": true,
+            "progressBar": true,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        };
+
+        // Mobile sidebar toggle
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            document.querySelector('.admin-sidebar').classList.toggle('sidebar-open');
+        });
+
+        const confirmModal = new bootstrap.Modal(document.getElementById('adminConfirmModal'));
+        const confirmTitle = document.getElementById('adminConfirmTitle');
+        const confirmMessage = document.getElementById('adminConfirmMessage');
+        let confirmForm = null;
+
+        document.querySelectorAll('[data-confirm="true"]').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                confirmForm = this.closest('form');
+                if (!confirmForm) return;
+                e.preventDefault();
+                confirmTitle.textContent = this.getAttribute('data-confirm-title') || 'Are you sure?';
+                confirmMessage.textContent = this.getAttribute('data-confirm-message') || 'This action cannot be undone.';
+                confirmModal.show();
+            });
+        });
+
+        document.getElementById('adminConfirmSubmit')?.addEventListener('click', function () {
+            if (confirmForm) {
+                confirmModal.hide();
+                confirmForm.submit();
+            }
+        });
+
+        // Auto-hide alerts
+        setTimeout(function() {
+            $('.alert-admin').fadeOut('slow');
+        }, 5000);
+    </script>
+    <div class="modal fade" id="adminConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content confirm-modal">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="adminConfirmTitle">Confirm Action</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="adminConfirmMessage" class="mb-0">Are you sure?</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">No, Cancel</button>
+                    <button type="button" class="btn btn-gold" id="adminConfirmSubmit">Yes, Proceed</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

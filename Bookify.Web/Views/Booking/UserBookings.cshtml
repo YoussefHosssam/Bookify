@@ -1,0 +1,71 @@
+@model IEnumerable<Bookify.Core.DTOs.BookingDto>
+@{
+    ViewData["Title"] = "My Bookings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold"><i class="bi bi-calendar-check"></i> My Bookings</h1>
+    <a href="@Url.Action("Index", "Rooms")" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Book Another Room
+    </a>
+</div>
+
+@if (Model.Any())
+{
+    <div class="row">
+        @foreach (var booking in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">@booking.BookingNumber</span>
+                        <span class="badge bg-@(booking.Status == Bookify.Core.Enums.BookingStatus.Confirmed ? "success" : booking.Status == Bookify.Core.Enums.BookingStatus.Cancelled ? "danger" : booking.Status == Bookify.Core.Enums.BookingStatus.Completed ? "info" : "warning")">
+                            @booking.Status
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@booking.RoomTypeName - @booking.RoomNumber</h5>
+                        <div class="mb-3">
+                            <p class="mb-1"><i class="bi bi-calendar-event"></i> <strong>Check-in:</strong> @booking.CheckIn.ToString("MMM dd, yyyy")</p>
+                            <p class="mb-1"><i class="bi bi-calendar-x"></i> <strong>Check-out:</strong> @booking.CheckOut.ToString("MMM dd, yyyy")</p>
+                            <p class="mb-1"><i class="bi bi-moon-stars"></i> <strong>Nights:</strong> @booking.Nights</p>
+                            <p class="mb-0"><i class="bi bi-currency-dollar"></i> <strong>Total:</strong> <span class="price-badge">$@booking.TotalAmount</span></p>
+                        </div>
+                        @if (booking.Status != Bookify.Core.Enums.BookingStatus.Cancelled && booking.Status != Bookify.Core.Enums.BookingStatus.Completed)
+                        {
+                            <form method="post" asp-action="Cancel" class="mt-3">
+                                <input type="hidden" name="id" value="@booking.Id" />
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirmCancel()">
+                                    <i class="bi bi-x-circle"></i> Cancel Booking
+                                </button>
+                            </form>
+                        }
+                    </div>
+                    <div class="card-footer text-muted small">
+                        Booked on @booking.CreatedAt.ToString("MMM dd, yyyy 'at' hh:mm tt")
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-info text-center">
+        <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+        <h4 class="mt-3">No Bookings Yet</h4>
+        <p>You haven't made any bookings. Start exploring our amazing rooms!</p>
+        <a href="@Url.Action("Index", "Rooms")" class="btn btn-primary mt-2">
+            <i class="bi bi-search"></i> Browse Rooms
+        </a>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function confirmCancel() {
+            return confirm('Are you sure you want to cancel this booking? This action cannot be undone.');
+        }
+    </script>
+}
+

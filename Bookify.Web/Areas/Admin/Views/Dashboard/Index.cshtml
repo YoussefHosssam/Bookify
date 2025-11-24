@@ -1,0 +1,192 @@
+@using Bookify.Data.Entities
+@{
+    ViewData["Title"] = "Admin Dashboard";
+    var stats = ViewBag.Stats as dynamic;
+    var recentBookings = ViewBag.RecentBookings as IEnumerable<Booking> ?? Enumerable.Empty<Booking>();
+    var statusBreakdown = ViewBag.StatusBreakdown as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    double occupancyRate = ViewBag.OccupancyRate ?? 0;
+}
+
+<section class="admin-dashboard-header shadow-hover mb-4">
+    <div>
+        <p class="eyebrow-text text-uppercase mb-2">Operations Center</p>
+        <h1 class="mb-1">Morning overview</h1>
+        <p class="text-muted mb-0">Track bookings, revenue, and occupancy in real time.</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-gold" href="@Url.Action("Index", "Rooms", new { area = "Admin" })">
+            <i class="bi bi-door-open"></i> Add Room
+        </a>
+        <a class="btn btn-gold" href="@Url.Action("Index", "Bookings", new { area = "Admin" })">
+            <i class="bi bi-calendar-plus"></i> New Booking
+        </a>
+    </div>
+</section>
+
+<div class="stat-grid mb-4">
+    <article class="stat-card shadow-hover">
+        <div class="icon-pill">
+            <i class="bi bi-calendar-check"></i>
+        </div>
+        <div>
+            <p>Total Bookings</p>
+            <h3>@stats.TotalBookings</h3>
+            <small class="text-muted">Confirmed: @stats.ConfirmedBookings</small>
+        </div>
+    </article>
+    <article class="stat-card shadow-hover">
+        <div class="icon-pill">
+            <i class="bi bi-currency-dollar"></i>
+        </div>
+        <div>
+            <p>Revenue</p>
+            <h3>$@stats.TotalRevenue.ToString("N2")</h3>
+            <small class="text-muted">Pending: @stats.PendingBookings</small>
+        </div>
+    </article>
+    <article class="stat-card shadow-hover">
+        <div class="icon-pill">
+            <i class="bi bi-building"></i>
+        </div>
+        <div>
+            <p>Rooms Online</p>
+            <h3>@stats.ActiveRooms / @stats.TotalRooms</h3>
+            <small class="text-muted">@stats.TotalRoomTypes room types</small>
+        </div>
+    </article>
+    <article class="stat-card shadow-hover">
+        <div class="icon-pill">
+            <i class="bi bi-graph-up"></i>
+        </div>
+        <div>
+            <p>Occupancy</p>
+            <h3>@occupancyRate%</h3>
+            <small class="text-muted">vs total inventory</small>
+        </div>
+    </article>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <article class="chart-card shadow-hover h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4>Occupancy Snapshot</h4>
+                    <p class="text-muted mb-0">Live view of active rooms</p>
+                </div>
+                <span class="badge badge-muted">Today</span>
+            </div>
+            <div class="occupancy-ring mx-auto my-4">
+                <div class="occupancy-value">@occupancyRate%</div>
+            </div>
+            <p class="text-center text-muted small">Active rooms are updated as soon as front desk makes changes.</p>
+        </article>
+    </div>
+    <div class="col-lg-6">
+        <article class="chart-card shadow-hover h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <h4>Booking status</h4>
+                    <p class="text-muted mb-0">Distribution across lifecycle</p>
+                </div>
+                <span class="badge badge-muted">All time</span>
+            </div>
+            @foreach (var status in statusBreakdown)
+            {
+                <div class="status-row mb-3">
+                    <div class="d-flex justify-content-between">
+                        <strong>@status.Status</strong>
+                        <span class="text-muted">@status.Count bookings</span>
+                    </div>
+                    <div class="progress progress-luxe mt-2">
+                        <div class="progress-bar" role="progressbar" style="width:@status.Percentage%" aria-valuenow="@status.Percentage" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            }
+            @if (!statusBreakdown.Any())
+            {
+                <div class="alert alert-info-admin">No bookings yet.</div>
+            }
+        </article>
+    </div>
+</div>
+
+<section class="admin-quick-actions shadow-hover mt-4">
+    <h5 class="mb-3 text-uppercase letter-spacing">Quick Actions</h5>
+    <div class="row g-3">
+        <div class="col-md-3 col-sm-6">
+            <a href="@Url.Action("Index", "Bookings", new { area = "Admin" })" class="quick-action-card">
+                <i class="bi bi-calendar-week"></i>
+                Manage bookings
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <a href="@Url.Action("Index", "Rooms", new { area = "Admin" })" class="quick-action-card">
+                <i class="bi bi-door-open"></i>
+                Rooms & inventory
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <a href="@Url.Action("Index", "RoomTypes", new { area = "Admin" })" class="quick-action-card">
+                <i class="bi bi-layout-text-window"></i>
+                Room types
+            </a>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <a href="@Url.Action("Export", "Bookings", new { area = "Admin" })" class="quick-action-card">
+                <i class="bi bi-download"></i>
+                Export data
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="recent-table shadow-hover mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h5 class="mb-1">Recent Bookings</h5>
+            <p class="text-muted small mb-0">Latest activity from all channels</p>
+        </div>
+        <a href="@Url.Action("Index", "Bookings", new { area = "Admin" })" class="btn btn-outline-gold btn-sm">View all</a>
+    </div>
+    @if (recentBookings.Any())
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Booking</th>
+                        <th>Room</th>
+                        <th>Dates</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var booking in recentBookings)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@booking.BookingNumber</strong>
+                                <div class="text-muted small">@booking.UserId</div>
+                            </td>
+                            <td>@(booking.Room?.RoomNumber ?? "N/A")</td>
+                            <td>
+                                <div>@booking.CheckIn.ToString("MMM dd") → @booking.CheckOut.ToString("MMM dd")</div>
+                                <small class="text-muted">@booking.Nights nights</small>
+                            </td>
+                            <td>
+                                <span class="badge status-pill status-@booking.Status?.ToLowerInvariant()">@booking.Status</span>
+                            </td>
+                            <td><strong>$@booking.TotalAmount</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info-admin mb-0">No bookings recorded yet.</div>
+    }
+</section>

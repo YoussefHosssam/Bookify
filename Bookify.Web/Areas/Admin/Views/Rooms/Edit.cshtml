@@ -1,0 +1,222 @@
+@model Bookify.Data.Entities.Room
+@{
+    ViewData["Title"] = "Edit Room";
+    var roomTypes = ViewBag.RoomTypes as IEnumerable<Bookify.Data.Entities.RoomType> ?? new List<Bookify.Data.Entities.RoomType>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-pencil"></i> Edit Room</h1>
+        <a href="@Url.Action("Index", "Rooms", new { area = "Admin" })" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Rooms
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="admin-card">
+            <div class="card-header">
+                <h5 class="mb-0">Room Information</h5>
+            </div>
+            <div>
+                    <form asp-action="Edit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="RoomNumber" class="form-label"></label>
+                            <input asp-for="RoomNumber" class="form-control" />
+                            <span asp-validation-for="RoomNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RoomTypeId" class="form-label"></label>
+                            <select asp-for="RoomTypeId" class="form-select" asp-items="@(new SelectList(roomTypes, "Id", "Name"))">
+                                <option value="">-- Select Room Type --</option>
+                            </select>
+                            <span asp-validation-for="RoomTypeId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Floor" class="form-label"></label>
+                            <input asp-for="Floor" class="form-control" type="number" min="1" />
+                            <span asp-validation-for="Floor" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Active
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="@Url.Action("Index", "Rooms", new { area = "Admin" })" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Update Room
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Room Images Section -->
+            <div class="admin-card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-images"></i> Room Photos</h5>
+                </div>
+                <div>
+                    <!-- Upload New Image -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Upload New Photo</label>
+                        <div class="d-flex gap-2">
+                            <input type="file" id="imageUpload" accept="image/*" class="form-control" />
+                            <button type="button" class="btn btn-primary" onclick="uploadImage(@Model.Id)">
+                                <i class="bi bi-upload"></i> Upload
+                            </button>
+                        </div>
+                        <small class="form-text text-muted">Supported formats: JPG, PNG, GIF. Max size: 5MB</small>
+                        <div id="uploadProgress" class="mt-2" style="display: none;">
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Existing Images -->
+                    <div id="imagesContainer">
+                        @{
+                            var roomImages = ViewBag.RoomImages as IEnumerable<Bookify.Data.Entities.RoomImage> ?? new List<Bookify.Data.Entities.RoomImage>();
+                        }
+                        @if (roomImages.Any())
+                        {
+                            <div class="row" id="roomImagesList">
+                                @foreach (var image in roomImages)
+                                {
+                                    <div class="col-md-3 mb-3" data-image-id="@image.Id">
+                                        <div class="position-relative">
+                                            <img src="@image.Url" class="img-fluid rounded" alt="Room Image" style="height: 150px; width: 100%; object-fit: cover; border: 2px solid var(--light-cocoa);">
+                                            <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2" onclick="removeImage(@image.Id, @Model.Id)" title="Remove Image">
+                                                <i class="bi bi-x-circle"></i>
+                                            </button>
+                                            <div class="text-center mt-2">
+                                                <small class="text-muted">Order: @image.SortOrder</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info text-center">
+                                <i class="bi bi-image" style="font-size: 2rem;"></i>
+                                <p class="mt-2 mb-0">No photos uploaded yet. Upload a photo to get started.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        function uploadImage(roomId) {
+            const fileInput = document.getElementById('imageUpload');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                toastr.error('Please select an image file', 'Error');
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toastr.error('File size must be less than 5MB', 'Error');
+                return;
+            }
+
+            // Validate file type
+            const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+            if (!allowedTypes.includes(file.type)) {
+                toastr.error('Only JPG, PNG, and GIF images are allowed', 'Error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('id', roomId);
+
+            const progressDiv = document.getElementById('uploadProgress');
+            const progressBar = progressDiv.querySelector('.progress-bar');
+            progressDiv.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            
+            fetch('@Url.Action("UploadImage", "Rooms", new { area = "Admin" })?id=' + roomId, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                progressDiv.style.display = 'none';
+                if (data.success) {
+                    toastr.success('Image uploaded successfully', 'Success');
+                    // Reload the page to show new image
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    toastr.error('Failed to upload image', 'Error');
+                }
+            })
+            .catch(error => {
+                progressDiv.style.display = 'none';
+                toastr.error('An error occurred: ' + error.message, 'Error');
+            });
+        }
+
+        function removeImage(imageId, roomId) {
+            if (!confirm('Are you sure you want to remove this image?')) {
+                return;
+            }
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+            
+            fetch('@Url.Action("RemoveImage", "Rooms", new { area = "Admin" })?imageId=' + imageId, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    toastr.success('Image removed successfully', 'Success');
+                    // Remove image from DOM
+                    document.querySelector(`[data-image-id="${imageId}"]`).remove();
+                    
+                    // Check if no images left
+                    const imagesList = document.getElementById('roomImagesList');
+                    if (imagesList && imagesList.children.length === 0) {
+                        location.reload();
+                    }
+                } else {
+                    toastr.error('Failed to remove image', 'Error');
+                }
+            })
+            .catch(error => {
+                toastr.error('An error occurred: ' + error.message, 'Error');
+            });
+        }
+    </script>
+}
+

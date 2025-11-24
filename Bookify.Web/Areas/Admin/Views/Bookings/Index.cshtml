@@ -1,0 +1,88 @@
+@model IEnumerable<Bookify.Data.Entities.Booking>
+@{
+    ViewData["Title"] = "Manage Bookings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-calendar-check"></i> Manage Bookings</h1>
+        <div>
+            <a href="@Url.Action("Export", "Bookings", new { area = "Admin" })" class="btn btn-outline-primary">
+                <i class="bi bi-download"></i> Export CSV
+            </a>
+            <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="btn btn-primary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Booking Number</th>
+                                <th>User ID</th>
+                                <th>Room</th>
+                                <th>Check In</th>
+                                <th>Check Out</th>
+                                <th>Nights</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var booking in Model)
+                            {
+                                <tr>
+                                    <td><strong>@booking.BookingNumber</strong></td>
+                                    <td>@booking.UserId</td>
+                                    <td>@(booking.Room?.RoomNumber ?? "N/A")</td>
+                                    <td>@booking.CheckIn.ToString("MMM dd, yyyy")</td>
+                                    <td>@booking.CheckOut.ToString("MMM dd, yyyy")</td>
+                                    <td>@booking.Nights</td>
+                                    <td><span class="price-badge">$@booking.TotalAmount</span></td>
+                                    <td>
+                                        <span class="badge bg-@(booking.Status == "Confirmed" ? "success" : booking.Status == "Cancelled" ? "danger" : booking.Status == "Completed" ? "info" : "warning")">
+                                            @booking.Status
+                                        </span>
+                                    </td>
+                                    <td>@booking.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <a href="@Url.Action("Details", "Bookings", new { area = "Admin", id = booking.Id })" class="btn btn-sm btn-primary">
+                                            <i class="bi bi-eye"></i> Details
+                                        </a>
+                                        @if (booking.Status != "Cancelled" && booking.Status != "Completed")
+                                        {
+                                            <form method="post" asp-action="Cancel" asp-route-id="@booking.Id" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-danger"
+                                                        data-confirm="true"
+                                                        data-confirm-title="Cancel Booking"
+                                                        data-confirm-message="Cancel booking @booking.BookingNumber?">
+                                                    <i class="bi bi-x-circle"></i> Cancel
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+        </div>
+    </div>
+}
+    else
+    {
+        <div class="alert-admin alert-info-admin text-center">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">No Bookings Found</h4>
+            <p>There are no bookings in the system yet.</p>
+        </div>
+    }
+</div>
+

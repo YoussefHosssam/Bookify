@@ -1,0 +1,67 @@
+@model Bookify.Data.Entities.Room
+@{
+    ViewData["Title"] = "Create Room";
+    var roomTypes = ViewBag.RoomTypes as IEnumerable<Bookify.Data.Entities.RoomType> ?? new List<Bookify.Data.Entities.RoomType>();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-plus-circle"></i> Create New Room</h1>
+        <a href="@Url.Action("Index", "Rooms", new { area = "Admin" })" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Rooms
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="admin-card">
+            <div class="card-header">
+                <h5 class="mb-0">Room Information</h5>
+            </div>
+            <div>
+                    <form asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="RoomNumber" class="form-label"></label>
+                            <input asp-for="RoomNumber" class="form-control" />
+                            <span asp-validation-for="RoomNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RoomTypeId" class="form-label"></label>
+                            <select asp-for="RoomTypeId" class="form-select" asp-items="@(new SelectList(roomTypes, "Id", "Name"))">
+                                <option value="">-- Select Room Type --</option>
+                            </select>
+                            <span asp-validation-for="RoomTypeId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Floor" class="form-label"></label>
+                            <input asp-for="Floor" class="form-control" type="number" min="1" />
+                            <span asp-validation-for="Floor" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            <input asp-for="IsActive" class="form-check-input" type="checkbox" checked />
+                            <label asp-for="IsActive" class="form-check-label">
+                                Active
+                            </label>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="@Url.Action("Index", "Rooms", new { area = "Admin" })" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Create Room
+                            </button>
+                        </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

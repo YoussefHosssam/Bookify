@@ -1,0 +1,89 @@
+@model IEnumerable<Bookify.Data.Entities.Room>
+@{
+    ViewData["Title"] = "Manage Rooms";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1><i class="bi bi-door-open"></i> Manage Rooms</h1>
+        <div>
+            <a href="@Url.Action("Create", "Rooms", new { area = "Admin" })" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add New Room
+            </a>
+            <a href="@Url.Action("Index", "Dashboard", new { area = "Admin" })" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Back to Dashboard
+            </a>
+    </div>
+</div>
+
+@if (Model.Any())
+{
+    <div class="admin-card">
+        <div class="table-responsive">
+            <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Room Number</th>
+                                <th>Room Type</th>
+                                <th>Floor</th>
+                                <th>Status</th>
+                                <th>Created At</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var room in Model)
+                            {
+                                <tr>
+                                    <td><strong>@room.RoomNumber</strong></td>
+                                    <td>@(room.RoomType?.Name ?? "N/A")</td>
+                                    <td>@room.Floor</td>
+                                    <td>
+                                        @if (room.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>@room.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td class="actions">
+                                        <a href="@Url.Action("Edit", "Rooms", new { area = "Admin", id = room.Id })" class="btn btn-sm btn-primary" title="Edit Room">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <a href="@Url.Action("Edit", "Rooms", new { area = "Admin", id = room.Id })#imagesContainer" class="btn btn-sm" style="background-color: var(--golden-accent); color: var(--dark-espresso);" title="Manage Photos">
+                                            <i class="bi bi-images"></i> Photos
+                                        </a>
+                                        <form method="post" asp-action="Delete" asp-route-id="@room.Id" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit"
+                                                    class="btn btn-sm btn-danger"
+                                                    data-confirm="true"
+                                                    data-confirm-title="Delete Room"
+                                                    data-confirm-message="Are you sure you want to delete room @room.RoomNumber?"
+                                                    title="Delete Room">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+        </div>
+    </div>
+}
+    else
+    {
+        <div class="alert-admin alert-info-admin text-center">
+            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+            <h4 class="mt-3">No Rooms Found</h4>
+            <p>There are no rooms in the system yet.</p>
+            <a href="@Url.Action("Create", "Rooms", new { area = "Admin" })" class="btn btn-primary mt-2">
+                <i class="bi bi-plus-circle"></i> Add First Room
+            </a>
+        </div>
+    }
+</div>
+

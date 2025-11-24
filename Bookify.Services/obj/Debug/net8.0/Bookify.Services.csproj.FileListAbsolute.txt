@@ -1,0 +1,17 @@
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Services.deps.json
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Services.dll
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Services.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Core.dll
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Data.dll
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Core.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Services\bin\Debug\net8.0\Bookify.Data.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.csproj.AssemblyReference.cache
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.GeneratedMSBuildEditorConfig.editorconfig
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.AssemblyInfoInputs.cache
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.AssemblyInfo.cs
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.csproj.CoreCompileInputs.cache
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify..0B5DB242.Up2Date
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.dll
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\refint\Bookify.Services.dll
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\Bookify.Services.pdb
+D:\DEPI_NET\CursorMVC\Bookify.Services\obj\Debug\net8.0\ref\Bookify.Services.dll

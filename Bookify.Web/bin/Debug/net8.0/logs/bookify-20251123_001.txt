@@ -1,0 +1,1 @@
+2025-11-23 15:10:30.172 +02:00 [WRN] The WebRootPath was not found: D:\DEPI_NET\CursorMVC\Bookify.Web\bin\Debug\net8.0\wwwroot. Static files may be unavailable.

@@ -1,0 +1,78 @@
+@model Bookify.Web.Controllers.LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    var returnUrl = ViewData["ReturnUrl"] as string ?? Url.Action("Index", "Home");
+}
+
+<section class="auth-hero">
+    <div class="auth-card">
+        <div class="text-center mb-4">
+            <div class="brand-monogram mx-auto mb-3">B</div>
+            <h2 class="fw-bold text-uppercase">Bookify Access</h2>
+            @if (ViewData["IsAdminLogin"] != null && ViewData["IsAdminLogin"] is bool isAdmin && isAdmin)
+            {
+                <p class="text-muted small letter-spacing">Admin gateway · Secure access required</p>
+            }
+            else
+            {
+                <p class="text-muted small letter-spacing">Welcome back · Continue your journey</p>
+            }
+        </div>
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger fade-in">
+                <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+            </div>
+        }
+
+        <form asp-action="Login" method="post" asp-route-returnUrl="@returnUrl">
+            @Html.AntiForgeryToken()
+            
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter your email" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input class="form-check-input" asp-for="RememberMe" />
+                <label class="form-check-label" asp-for="RememberMe">
+                    @Html.DisplayNameFor(m => m.RememberMe)
+                </label>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </button>
+            </div>
+
+            <div class="text-center mt-4">
+                <p class="mb-0">
+                    Don't have an account? 
+                    <a asp-action="Register" asp-route-returnUrl="@returnUrl" class="fw-bold">Register here</a>
+                </p>
+            </div>
+
+            <div class="text-center mt-3">
+                <a asp-area="Identity" asp-page="/Account/ForgotPassword" class="text-muted small">
+                    Forgot your password?
+                </a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
