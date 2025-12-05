@@ -2,7 +2,7 @@ using Bookify.Core.DTOs;
 using Bookify.Core.ViewModels;
 using Bookify.Data.Entities;
 
-namespace Bookify.Data.Repositories;
+namespace Bookify.Data.Interfaces;
 
 public interface IRoomRepository : IGenericRepository<Room>
 {

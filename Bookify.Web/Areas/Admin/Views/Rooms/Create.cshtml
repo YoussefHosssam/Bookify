@@ -18,27 +18,31 @@
                 <h5 class="mb-0">Room Information</h5>
             </div>
             <div>
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" asp-area="Admin" asp-controller="Rooms" method="post">
                         @Html.AntiForgeryToken()
-                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <div asp-validation-summary="All" class="alert alert-danger"></div>
 
                         <div class="mb-3">
-                            <label asp-for="RoomNumber" class="form-label"></label>
-                            <input asp-for="RoomNumber" class="form-control" />
+                            <label asp-for="RoomNumber" class="form-label">Room Number <span class="text-danger">*</span></label>
+                            <input asp-for="RoomNumber" class="form-control" required maxlength="50" />
                             <span asp-validation-for="RoomNumber" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="RoomTypeId" class="form-label"></label>
-                            <select asp-for="RoomTypeId" class="form-select" asp-items="@(new SelectList(roomTypes, "Id", "Name"))">
+                            <label asp-for="RoomTypeId" class="form-label">Room Type <span class="text-danger">*</span></label>
+                            <select asp-for="RoomTypeId" class="form-select" required>
                                 <option value="">-- Select Room Type --</option>
+                                @foreach (var roomType in roomTypes)
+                                {
+                                    <option value="@roomType.Id">@roomType.Name</option>
+                                }
                             </select>
                             <span asp-validation-for="RoomTypeId" class="text-danger"></span>
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Floor" class="form-label"></label>
-                            <input asp-for="Floor" class="form-control" type="number" min="1" />
+                            <label asp-for="Floor" class="form-label">Floor <span class="text-danger">*</span></label>
+                            <input asp-for="Floor" class="form-control" type="number" min="1" step="1" required />
                             <span asp-validation-for="Floor" class="text-danger"></span>
                         </div>
 
@@ -59,9 +63,51 @@
         </div>
     </div>
 </div>
-</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Handle form submission
+        $('form').on('submit', function(e) {
+            const form = $(this);
+            
+            // Clear previous validation
+            form.removeClass('was-validated');
+            
+            // Check HTML5 validation
+            if (!form[0].checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                form.addClass('was-validated');
+                
+                // Scroll to first error
+                const firstError = form.find('.is-invalid, .text-danger').first();
+                if (firstError.length) {
+                    $('html, body').animate({
+                        scrollTop: firstError.offset().top - 100
+                    }, 500);
+                }
+                return false;
+            }
+
+            // Show loading state
+            const submitBtn = form.find('button[type="submit"]');
+            const originalText = submitBtn.html();
+            submitBtn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Creating...');
+            
+            // Allow form to submit
+            return true;
+        });
+        
+        // Add validation classes on blur
+        $('input, select').on('blur', function() {
+            const field = $(this);
+            if (field[0].checkValidity()) {
+                field.removeClass('is-invalid').addClass('is-valid');
+            } else {
+                field.removeClass('is-valid').addClass('is-invalid');
+            }
+        });
+    </script>
 }
 

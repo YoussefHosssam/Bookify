@@ -29,7 +29,7 @@
                             <p class="mb-1"><i class="bi bi-calendar-event"></i> <strong>Check-in:</strong> @booking.CheckIn.ToString("MMM dd, yyyy")</p>
                             <p class="mb-1"><i class="bi bi-calendar-x"></i> <strong>Check-out:</strong> @booking.CheckOut.ToString("MMM dd, yyyy")</p>
                             <p class="mb-1"><i class="bi bi-moon-stars"></i> <strong>Nights:</strong> @booking.Nights</p>
-                            <p class="mb-0"><i class="bi bi-currency-dollar"></i> <strong>Total:</strong> <span class="price-badge">$@booking.TotalAmount</span></p>
+                            <p class="mb-0"><i class="bi bi-currency-pound"></i> <strong>Total:</strong> <span class="price-badge">EGP @booking.TotalAmount</span></p>
                         </div>
                         @if (booking.Status != Bookify.Core.Enums.BookingStatus.Cancelled && booking.Status != Bookify.Core.Enums.BookingStatus.Completed)
                         {

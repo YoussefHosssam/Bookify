@@ -1,0 +1,33 @@
+2025-12-04 20:16:00.013 +02:00 [INF] Database migrations completed successfully.
+2025-12-04 20:16:00.063 +02:00 [INF] Application starting...
+2025-12-04 20:16:00.067 +02:00 [INF] Now listening on: https://localhost:7198
+2025-12-04 20:19:28.578 +02:00 [INF] Database migrations completed successfully.
+2025-12-04 20:19:28.614 +02:00 [INF] Application starting...
+2025-12-04 20:19:28.617 +02:00 [INF] Now listening on: https://localhost:7198
+2025-12-04 20:19:42.142 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:19:42.150 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:42.160 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:47.434 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:19:47.436 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:47.442 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:50.352 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 1, Floor: 3
+2025-12-04 20:19:50.356 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:50.362 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:54.723 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 3, Floor: 3
+2025-12-04 20:19:54.725 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:54.731 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:58.133 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:19:58.136 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:58.141 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:58.283 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:19:58.285 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:58.297 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:58.413 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:19:58.417 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:58.423 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:19:58.682 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:19:58.686 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:19:58.694 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.
+2025-12-04 20:20:09.770 +02:00 [INF] Create POST called. RoomNumber: DEL012, RoomTypeId: 2, Floor: 3
+2025-12-04 20:20:09.773 +02:00 [WRN] ModelState Error - RoomType: The RoomType field is required.
+2025-12-04 20:20:09.806 +02:00 [WRN] ModelState is invalid. Errors: The RoomType field is required.

@@ -9,7 +9,7 @@ public class CartController : Controller
 {
     private readonly IRoomService _roomService;
     private readonly ILogger<CartController> _logger;
-    private const string CartSessionKey = "Cart";
+    private const string CartSessionKeyPrefix = "Cart_";
 
     public CartController(IRoomService roomService, ILogger<CartController> logger)
     {
@@ -17,9 +17,24 @@ public class CartController : Controller
         _logger = logger;
     }
 
+    private string GetCartSessionKey()
+    {
+        // Use userId if authenticated, otherwise use session ID
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            return $"{CartSessionKeyPrefix}User_{userId}";
+        }
+        
+        // For anonymous users, use session ID
+        var sessionId = HttpContext.Session.Id;
+        return $"{CartSessionKeyPrefix}Session_{sessionId}";
+    }
+
     private CartViewModel GetCart()
     {
-        var cartJson = HttpContext.Session.GetString(CartSessionKey);
+        var cartKey = GetCartSessionKey();
+        var cartJson = HttpContext.Session.GetString(cartKey);
         if (string.IsNullOrEmpty(cartJson))
         {
             return new CartViewModel();
@@ -30,8 +45,9 @@ public class CartController : Controller
 
     private void SaveCart(CartViewModel cart)
     {
+        var cartKey = GetCartSessionKey();
         var cartJson = JsonSerializer.Serialize(cart);
-        HttpContext.Session.SetString(CartSessionKey, cartJson);
+        HttpContext.Session.SetString(cartKey, cartJson);
     }
 
     [HttpPost]

@@ -1,4 +1,4 @@
-@model Bookify.Web.Controllers.ProfileViewModel
+@model Bookify.Web.Models.ProfileViewModel
 @{
     ViewData["Title"] = "My Profile";
 }
@@ -38,7 +38,7 @@
 
                         <div class="mb-3">
                             <label asp-for="PhoneNumber" class="form-label"></label>
-                            <input asp-for="PhoneNumber" class="form-control" placeholder="(555) 123-4567" />
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="+20 123 456 7890" />
                             <span asp-validation-for="PhoneNumber" class="text-danger"></span>
                         </div>
 

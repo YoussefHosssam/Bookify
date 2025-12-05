@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Bookify.Data.Repositories;
+using Bookify.Data.Interfaces;
 
 namespace Bookify.Web.Areas.Admin.Controllers;
 

@@ -87,3 +87,26 @@
     }
 </div>
 
+@section Scripts {
+    <script>
+        // Show success alert when room is created
+        @if (TempData["Success"] != null)
+        {
+            <text>
+            $(document).ready(function() {
+                // Show alert
+                alert('@TempData["Success"]');
+                
+                // Also show toastr notification if available
+                if (typeof toastr !== 'undefined') {
+                    toastr.success('@TempData["Success"]', 'Success', {
+                        timeOut: 5000,
+                        closeButton: true
+                    });
+                }
+            });
+            </text>
+        }
+    </script>
+}
+

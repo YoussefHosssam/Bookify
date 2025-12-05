@@ -44,7 +44,7 @@
                                     <td>@booking.CheckIn.ToString("MMM dd, yyyy")</td>
                                     <td>@booking.CheckOut.ToString("MMM dd, yyyy")</td>
                                     <td>@booking.Nights</td>
-                                    <td><span class="price-badge">$@booking.TotalAmount</span></td>
+                                    <td><span class="price-badge">EGP @booking.TotalAmount</span></td>
                                     <td>
                                         <span class="badge bg-@(booking.Status == "Confirmed" ? "success" : booking.Status == "Cancelled" ? "danger" : booking.Status == "Completed" ? "info" : "warning")">
                                             @booking.Status

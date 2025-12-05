@@ -26,7 +26,7 @@
                 <article class="cart-room-card shadow-hover">
                     <div class="cart-room-media">
                         <img src="@fallbackImage" alt="@item.RoomNumber" />
-                        <span class="price-pill">$@item.PricePerNight<span>/night</span></span>
+                        <span class="price-pill">EGP @item.PricePerNight<span>/night</span></span>
                     </div>
                     <div class="cart-room-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -61,7 +61,7 @@
                         <div class="d-flex justify-content-end mt-3">
                             <div class="text-end">
                                 <span class="text-muted small">Subtotal</span>
-                                <div class="cart-subtotal">$@item.SubTotal</div>
+                                <div class="cart-subtotal">EGP @item.SubTotal</div>
                             </div>
                         </div>
                     </div>
@@ -79,16 +79,16 @@
                 </div>
                 <div class="invoice-line">
                     <span>Subtotal</span>
-                    <strong>$@Model.TotalAmount</strong>
+                    <strong>EGP @Model.TotalAmount</strong>
                 </div>
                 <div class="invoice-line">
                     <span>Taxes & Fees</span>
-                    <strong>$0.00</strong>
+                    <strong>EGP 0.00</strong>
                 </div>
                 <hr>
                 <div class="invoice-total">
                     <span>Total Due</span>
-                    <span>$@Model.TotalAmount</span>
+                    <span>EGP @Model.TotalAmount</span>
                 </div>
                 @if (User.Identity?.IsAuthenticated == true)
                 {

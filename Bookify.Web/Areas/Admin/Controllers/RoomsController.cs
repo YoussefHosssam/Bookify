@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Bookify.Data.Repositories;
 using Bookify.Data.Entities;
+using Bookify.Data.Interfaces;
 
 namespace Bookify.Web.Areas.Admin.Controllers;
 
@@ -47,16 +47,91 @@ public class RoomsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Room room)
+    public async Task<IActionResult> Create([Bind("Id,RoomNumber,RoomTypeId,Floor,IsActive,CreatedAt")] Room room)
     {
+        _logger.LogInformation("Create POST called. RoomNumber: {RoomNumber}, RoomTypeId: {RoomTypeId}, Floor: {Floor}", 
+            room?.RoomNumber, room?.RoomTypeId, room?.Floor);
+
+        // Remove navigation properties from ModelState validation (they're already excluded by [Bind], but just to be safe)
+        ModelState.Remove(nameof(room.RoomType));
+        ModelState.Remove(nameof(room.Images));
+        ModelState.Remove(nameof(room.Bookings));
+
+        // Log ModelState errors
+        if (!ModelState.IsValid)
+        {
+            foreach (var error in ModelState)
+            {
+                foreach (var errorMessage in error.Value.Errors)
+                {
+                    _logger.LogWarning("ModelState Error - {Key}: {Message}", error.Key, errorMessage.ErrorMessage);
+                }
+            }
+        }
+
+        // Validate RoomTypeId
+        if (room.RoomTypeId <= 0)
+        {
+            ModelState.AddModelError(nameof(room.RoomTypeId), "Please select a room type.");
+        }
+        else
+        {
+            // Verify room type exists
+            var roomType = await _unitOfWork.RoomTypes.GetByIdAsync(room.RoomTypeId);
+            if (roomType == null)
+            {
+                ModelState.AddModelError(nameof(room.RoomTypeId), "Selected room type does not exist.");
+            }
+        }
+
+        // Validate Floor
+        if (room.Floor <= 0)
+        {
+            ModelState.AddModelError(nameof(room.Floor), "Floor must be greater than 0.");
+        }
+
+        // Validate RoomNumber
+        if (string.IsNullOrWhiteSpace(room.RoomNumber))
+        {
+            ModelState.AddModelError(nameof(room.RoomNumber), "Room number is required.");
+        }
+        else
+        {
+            // Check if room number already exists
+            var existingRooms = await _unitOfWork.Rooms.GetAllAsync();
+            if (existingRooms.Any(r => r.RoomNumber.Equals(room.RoomNumber, StringComparison.OrdinalIgnoreCase)))
+            {
+                ModelState.AddModelError(nameof(room.RoomNumber), "A room with this number already exists.");
+            }
+        }
+
         if (ModelState.IsValid)
         {
-            room.CreatedAt = DateTime.UtcNow;
-            await _unitOfWork.Rooms.AddAsync(room);
-            await _unitOfWork.CommitAsync();
-            TempData["Success"] = "Room created successfully.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                room.CreatedAt = DateTime.UtcNow;
+                await _unitOfWork.Rooms.AddAsync(room);
+                var saved = await _unitOfWork.CommitAsync();
+                
+                _logger.LogInformation("Room saved. Changes saved: {Saved}, RoomId: {RoomId}", saved, room.Id);
+                
+                TempData["Success"] = $"Room '{room.RoomNumber}' has been added successfully!";
+                _logger.LogInformation("Room {RoomNumber} created successfully", room.RoomNumber);
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating room. Exception: {Exception}", ex.ToString());
+                ModelState.AddModelError(string.Empty, $"An error occurred while creating the room: {ex.Message}");
+                ViewBag.RoomTypes = await _unitOfWork.RoomTypes.GetAllAsync();
+                return View(room);
+            }
         }
+        
+        // Log all validation errors
+        _logger.LogWarning("ModelState is invalid. Errors: {Errors}", 
+            string.Join(", ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage)));
+        
         ViewBag.RoomTypes = await _unitOfWork.RoomTypes.GetAllAsync();
         return View(room);
     }

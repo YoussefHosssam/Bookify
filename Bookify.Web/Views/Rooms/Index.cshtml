@@ -1,7 +1,21 @@
 @model Bookify.Core.ViewModels.PagedResult<Bookify.Core.DTOs.RoomDto>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject Bookify.Services.Interfaces.IFavoriteRoomService FavoriteRoomService
 @{
     ViewData["Title"] = "Available Rooms";
     var roomTypes = ViewBag.RoomTypes as IEnumerable<Bookify.Core.DTOs.RoomTypeDto> ?? new List<Bookify.Core.DTOs.RoomTypeDto>();
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var favoriteRoomIds = new List<int>();
+    if (isAuthenticated)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            favoriteRoomIds = (await FavoriteRoomService.GetFavoriteRoomIdsAsync(userId)).ToList();
+        }
+    }
 }
 
 <section class="section-lux room-catalog container-xl">
@@ -60,6 +74,15 @@
                         </label>
                     </div>
 
+                    @if (isAuthenticated)
+                    {
+                        <div class="filter-group">
+                            <label class="filter-chip">
+                                <input type="checkbox" name="FavoritesOnly" value="true" class="form-check-input me-2" @(ViewBag.FavoritesOnly == true ? "checked" : "") /> My Favorites
+                            </label>
+                        </div>
+                    }
+
                     <button type="submit" class="btn btn-gold w-100 mt-3">
                         <i class="bi bi-sliders"></i> Refine Results
                     </button>
@@ -94,10 +117,19 @@
                                 <article class="room-card-premium position-relative">
                                     <div class="position-relative">
                                         <img src="@fallbackImage" alt="@room.RoomNumber" loading="lazy" />
-                                        <button type="button" class="wishlist-floating btn btn-sm btn-dark border-0">
-                                            <i class="bi bi-heart"></i>
-                                        </button>
-                                        <span class="price-pill">$@room.BasePricePerNight<span>/night</span></span>
+                                        @if (isAuthenticated)
+                                        {
+                                            <button type="button" class="wishlist-heart favorite-btn" data-room-id="@room.Id" style="cursor: pointer; border: none; background: rgba(255,255,255,0.8); z-index: 10; position: absolute; top: 18px; right: 18px;">
+                                                <i class="bi @(favoriteRoomIds.Contains(room.Id) ? "bi-heart-fill" : "bi-heart")"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <a href="@Url.Action("Login", "Account")" class="wishlist-floating btn btn-sm btn-dark border-0" style="z-index: 1000; text-decoration: none; pointer-events: auto; position: absolute;">
+                                                <i class="bi bi-heart"></i>
+                                            </a>
+                                        }
+                                        <span class="price-pill">EGP @room.BasePricePerNight<span>/night</span></span>
                                     </div>
                                     <div class="room-card-meta">
                                         <div class="d-flex justify-content-between">
@@ -186,6 +218,108 @@
 @section Scripts {
     <script>
         validateDates('checkIn', 'checkOut');
+        
+        @if (isAuthenticated)
+        {
+            <text>
+            // Favorite button functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.favorite-btn').forEach(function(btn) {
+                    btn.addEventListener('click', async function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const roomId = parseInt(this.dataset.roomId);
+                        if (!roomId || isNaN(roomId)) {
+                            console.error('Invalid room ID');
+                            return;
+                        }
+                        
+                        const icon = this.querySelector('i');
+                        if (!icon) {
+                            console.error('Icon not found');
+                            return;
+                        }
+                        
+                        // Disable button during request
+                        this.disabled = true;
+                        const originalCursor = this.style.cursor;
+                        this.style.cursor = 'wait';
+                        
+                        try {
+                            const response = await fetch('@Url.Action("ToggleFavorite", "Rooms")', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ roomId: roomId })
+                            });
+                            
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            
+                            const result = await response.json();
+                            if (result.success) {
+                                if (result.isFavorite) {
+                                    icon.classList.remove('bi-heart');
+                                    icon.classList.add('bi-heart-fill');
+                                    if (typeof toastr !== 'undefined') {
+                                        toastr.success('Added to favorites', 'Success');
+                                    }
+                                } else {
+                                    icon.classList.remove('bi-heart-fill');
+                                    icon.classList.add('bi-heart');
+                                    if (typeof toastr !== 'undefined') {
+                                        toastr.info('Removed from favorites', 'Info');
+                                    }
+                                }
+                            } else {
+                                if (typeof toastr !== 'undefined') {
+                                    toastr.error(result.message || 'Error updating favorite', 'Error');
+                                } else {
+                                    alert(result.message || 'Error updating favorite');
+                                }
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            if (typeof toastr !== 'undefined') {
+                                toastr.error('Error updating favorite', 'Error');
+                            } else {
+                                alert('Error updating favorite');
+                            }
+                        } finally {
+                            // Re-enable button
+                            this.disabled = false;
+                            this.style.cursor = originalCursor || 'pointer';
+                        }
+                    });
+                });
+            });
+            </text>
+        }
     </script>
+    <style>
+        .wishlist-floating {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        .favorite-btn {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            z-index: 10 !important;
+        }
+        .favorite-btn:hover {
+            background: rgba(255,255,255,0.95) !important;
+            transform: scale(1.1);
+            transition: all 0.2s ease;
+        }
+        .favorite-btn:active {
+            transform: scale(0.95);
+        }
+        .favorite-btn i {
+            pointer-events: none;
+        }
+    </style>
 }
 

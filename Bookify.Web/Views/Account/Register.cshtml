@@ -1,4 +1,4 @@
-@model Bookify.Web.Controllers.RegisterViewModel
+@model Bookify.Web.Models.RegisterViewModel
 @{
     ViewData["Title"] = "Register";
     var returnUrl = ViewData["ReturnUrl"] as string ?? Url.Action("Index", "Home");
@@ -19,41 +19,40 @@
             </div>
         }
 
-        <form asp-action="Register" method="post" asp-route-returnUrl="@returnUrl">
-            @Html.AntiForgeryToken()
-            
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <form id="registerForm">
+            <div id="registerError" class="alert alert-danger d-none" role="alert"></div>
+            <div id="registerErrors" class="alert alert-danger d-none" role="alert"></div>
 
             <div class="mb-3">
-                <label asp-for="UserName" class="form-label"></label>
-                <input asp-for="UserName" class="form-control" autocomplete="username" aria-required="true" placeholder="Choose a username" />
-                <span asp-validation-for="UserName" class="text-danger"></span>
+                <label for="userName" class="form-label">Username</label>
+                <input type="text" id="userName" name="userName" class="form-control" autocomplete="username" aria-required="true" placeholder="Choose a username" required />
+                <span class="text-danger d-none" id="userNameError"></span>
                 <small class="form-text text-muted">3-50 characters, letters, numbers, and underscores only</small>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter your email address" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter your email address" required />
+                <span class="text-danger d-none" id="emailError"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Create a password" required />
+                <span class="text-danger d-none" id="passwordError"></span>
                 <small class="form-text text-muted">
                     Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character.
                 </small>
             </div>
 
             <div class="mb-3">
-                <label asp-for="ConfirmPassword" class="form-label"></label>
-                <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="Confirm your password" required />
+                <span class="text-danger d-none" id="confirmPasswordError"></span>
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">
+                <button type="submit" class="btn btn-primary btn-lg" id="registerButton">
                     <i class="bi bi-person-plus"></i> Create Account
                 </button>
             </div>
@@ -69,6 +68,97 @@
 </section>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userName = document.getElementById('userName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const returnUrl = '@returnUrl';
+            const errorDiv = document.getElementById('registerError');
+            const errorsDiv = document.getElementById('registerErrors');
+            const registerButton = document.getElementById('registerButton');
+            const originalText = registerButton.innerHTML;
+            
+            // Clear previous errors
+            errorDiv.classList.add('d-none');
+            errorDiv.textContent = '';
+            errorsDiv.classList.add('d-none');
+            errorsDiv.innerHTML = '';
+            document.querySelectorAll('.text-danger').forEach(el => el.classList.add('d-none'));
+            
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match.';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+            
+            // Validate required fields
+            if (!userName || !email || !password || !confirmPassword) {
+                errorDiv.textContent = 'Please fill in all fields.';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+            
+            // Disable button and show loading
+            registerButton.disabled = true;
+            registerButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating account...';
+            
+            try {
+                const response = await fetch('@Url.Action("Register", "Account")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userName: userName,
+                        email: email,
+                        password: password
+                    }),
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.token) {
+                    // Store token in localStorage
+                    if (typeof JwtAuth !== 'undefined') {
+                        JwtAuth.setToken(result.token);
+                    } else {
+                        localStorage.setItem('jwt_token', result.token);
+                    }
+                    
+                    // Show success message
+                    toastr.success('Registration successful! Welcome to Bookify.', 'Success');
+                    
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = result.returnUrl || '@Url.Action("Index", "Home")';
+                    }, 1000);
+                } else {
+                    // Show errors
+                    if (result.errors && Array.isArray(result.errors) && result.errors.length > 0) {
+                        errorsDiv.innerHTML = '<ul class="mb-0">' + result.errors.map(e => '<li>' + e + '</li>').join('') + '</ul>';
+                        errorsDiv.classList.remove('d-none');
+                    } else {
+                        errorDiv.textContent = result.message || 'Registration failed. Please try again.';
+                        errorDiv.classList.remove('d-none');
+                    }
+                    registerButton.disabled = false;
+                    registerButton.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('d-none');
+                registerButton.disabled = false;
+                registerButton.innerHTML = originalText;
+            }
+        });
+    </script>
 }
 

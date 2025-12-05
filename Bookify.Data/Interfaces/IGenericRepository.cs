@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace Bookify.Data.Repositories;
+namespace Bookify.Data.Interfaces;
 
 public interface IGenericRepository<T> where T : class
 {

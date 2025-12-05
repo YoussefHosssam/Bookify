@@ -14,11 +14,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj",
+      "projectUniqueName": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj",
       "projectName": "Bookify.Core",
-      "projectPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj",
+      "projectPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj",
       "packagesPath": "C:\\Users\\hp\\.nuget\\packages\\",
-      "outputPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\obj\\",
+      "outputPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -3,9 +3,14 @@
 @inject UserManager<IdentityUser> UserManager
 
 <div class="auth-menu d-flex align-items-center gap-2">
-@if (SignInManager.IsSignedIn(User))
+@if (User.Identity?.IsAuthenticated == true)
 {
-    var user = await UserManager.GetUserAsync(User);
+    var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    IdentityUser? user = null;
+    if (!string.IsNullOrEmpty(userId))
+    {
+        user = await UserManager.FindByIdAsync(userId);
+    }
     <div class="dropdown">
         <button class="btn btn-dark d-flex align-items-center gap-2 auth-user-btn" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(user?.UserName ?? "User")&background=0E1B2A&color=fff&size=64"

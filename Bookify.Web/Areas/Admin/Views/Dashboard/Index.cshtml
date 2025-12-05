@@ -36,11 +36,11 @@
     </article>
     <article class="stat-card shadow-hover">
         <div class="icon-pill">
-            <i class="bi bi-currency-dollar"></i>
+            <i class="bi bi-currency-pound"></i>
         </div>
         <div>
             <p>Revenue</p>
-            <h3>$@stats.TotalRevenue.ToString("N2")</h3>
+            <h3>EGP @stats.TotalRevenue.ToString("N2")</h3>
             <small class="text-muted">Pending: @stats.PendingBookings</small>
         </div>
     </article>
@@ -178,7 +178,7 @@
                             <td>
                                 <span class="badge status-pill status-@booking.Status?.ToLowerInvariant()">@booking.Status</span>
                             </td>
-                            <td><strong>$@booking.TotalAmount</strong></td>
+                            <td><strong>EGP @booking.TotalAmount</strong></td>
                         </tr>
                     }
                 </tbody>

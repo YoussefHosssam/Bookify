@@ -1,6 +1,12 @@
 @model Bookify.Core.DTOs.RoomDto
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
 @{
     ViewData["Title"] = "Room Details";
+    var feedbacks = ViewBag.Feedbacks as IEnumerable<Bookify.Core.DTOs.RoomFeedbackDto> ?? new List<Bookify.Core.DTOs.RoomFeedbackDto>();
+    var averageRating = ViewBag.AverageRating as double? ?? 0;
+    var isFavorite = ViewBag.IsFavorite as bool? ?? false;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
 }
 
 <section class="section-lux container-xl">
@@ -56,6 +62,74 @@
                     <p>@Model.Amenities</p>
                 </div>
             }
+
+            <!-- Guest Feedback Section -->
+            <div class="lux-card mt-4">
+                <h3 class="mb-3">Guest Stories</h3>
+                
+                @if (feedbacks.Any())
+                {
+                    <div class="feedback-list mb-4">
+                        @foreach (var feedback in feedbacks)
+                        {
+                            <div class="feedback-item mb-4 pb-4 border-bottom">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong>@feedback.UserName</strong>
+                                        <div class="rating small mt-1">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                <i class="bi @(i <= feedback.Rating ? "bi-star-fill" : "bi-star")"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <span class="text-muted small">@feedback.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                <p class="mb-0">@feedback.Comment</p>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No feedback yet. Be the first to share your experience!</p>
+                }
+
+                @if (isAuthenticated)
+                {
+                    <div class="feedback-form">
+                        <h5 class="mb-3">Share Your Experience</h5>
+                        <form id="feedbackForm">
+                            <input type="hidden" id="feedbackRoomId" value="@Model.Id" />
+                            <div class="mb-3">
+                                <label class="form-label">Rating</label>
+                                <div class="rating-input">
+                                    @for (int i = 5; i >= 1; i--)
+                                    {
+                                        <input type="radio" name="rating" id="rating@i" value="@i" @(i == 5 ? "checked" : "") />
+                                        <label for="rating@i" class="star-label">
+                                            <i class="bi bi-star-fill"></i>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Your Feedback</label>
+                                <textarea id="feedbackComment" class="form-control" rows="4" placeholder="Share your experience..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-gold">
+                                <i class="bi bi-send"></i> Submit Feedback
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <a asp-controller="Account" asp-action="Login">Sign in</a> to share your feedback about this room.
+                    </div>
+                }
+            </div>
         </div>
 
         <div class="col-lg-4">
@@ -66,9 +140,25 @@
                         <h4 class="mt-2">@Model.RoomTypeName</h4>
                     </div>
                     <div class="text-end">
-                        <div class="price-highlight">$@Model.BasePricePerNight</div>
+                        <div class="price-highlight">EGP @Model.BasePricePerNight</div>
                         <span>/night</span>
                     </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="rating">
+                        <i class="bi bi-star-fill"></i>
+                        <span>@(averageRating > 0 ? averageRating.ToString("F1") : "No ratings yet")</span>
+                        @if (feedbacks.Any())
+                        {
+                            <span class="text-muted small">(@feedbacks.Count() reviews)</span>
+                        }
+                    </div>
+                    @if (isAuthenticated)
+                    {
+                        <button type="button" class="btn btn-sm btn-outline-dark favorite-btn" data-room-id="@Model.Id">
+                            <i class="bi @(isFavorite ? "bi-heart-fill" : "bi-heart")"></i>
+                        </button>
+                    }
                 </div>
                 <hr>
                 <form id="addToCartForm">
@@ -172,6 +262,140 @@
             checkInDate.setDate(checkInDate.getDate() + 1);
             document.getElementById('checkOut').min = checkInDate.toISOString().split('T')[0];
         });
+
+        // Favorite button functionality
+        @if (isAuthenticated)
+        {
+            <text>
+            const favoriteBtn = document.querySelector('.favorite-btn');
+            if (favoriteBtn) {
+                favoriteBtn.addEventListener('click', async function() {
+                    const roomId = parseInt(this.dataset.roomId);
+                    const icon = this.querySelector('i');
+                    
+                    try {
+                        const response = await fetch('@Url.Action("ToggleFavorite", "Rooms")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ roomId: roomId })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            if (result.isFavorite) {
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                                toastr.success('Added to favorites', 'Success');
+                            } else {
+                                icon.classList.remove('bi-heart-fill');
+                                icon.classList.add('bi-heart');
+                                toastr.info('Removed from favorites', 'Info');
+                            }
+                        }
+                    } catch (error) {
+                        toastr.error('Error updating favorite', 'Error');
+                    }
+                });
+            }
+            </text>
+        }
+
+        // Feedback form submission
+        @if (isAuthenticated)
+        {
+            <text>
+            const feedbackForm = document.getElementById('feedbackForm');
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const roomId = parseInt(document.getElementById('feedbackRoomId').value);
+                    const ratingInput = document.querySelector('input[name="rating"]:checked');
+                    if (!ratingInput) {
+                        toastr.error('Please select a rating', 'Error');
+                        return;
+                    }
+                    const rating = parseInt(ratingInput.value);
+                    const comment = document.getElementById('feedbackComment').value.trim();
+                    
+                    if (!comment) {
+                        toastr.error('Please enter your feedback', 'Error');
+                        return;
+                    }
+                    
+                    if (rating < 1 || rating > 5) {
+                        toastr.error('Please select a valid rating', 'Error');
+                        return;
+                    }
+                    
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    const originalText = submitButton.innerHTML;
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="loading-spinner"></span> Submitting...';
+                    
+                    try {
+                        const response = await fetch('@Url.Action("AddFeedback", "Rooms")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                roomId: roomId,
+                                rating: rating,
+                                comment: comment
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            toastr.success('Thank you for your feedback!', 'Success');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            toastr.error(result.message || 'Error submitting feedback', 'Error');
+                            submitButton.disabled = false;
+                            submitButton.innerHTML = originalText;
+                        }
+                    } catch (error) {
+                        toastr.error('An error occurred: ' + error.message, 'Error');
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = originalText;
+                    }
+                });
+            }
+            </text>
+        }
     </script>
+    <style>
+        .rating-input {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+        .rating-input input[type="radio"] {
+            display: none;
+        }
+        .rating-input label {
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #ddd;
+            transition: color 0.2s;
+        }
+        .rating-input input[type="radio"]:checked ~ label,
+        .rating-input label:hover,
+        .rating-input label:hover ~ label {
+            color: #d4af37;
+        }
+        .feedback-item {
+            padding-bottom: 1rem;
+        }
+        .rating.small {
+            font-size: 0.875rem;
+        }
+    </style>
 }
 

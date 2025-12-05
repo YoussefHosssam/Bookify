@@ -1,5 +1,6 @@
 using Bookify.Core.ViewModels;
 using Bookify.Data.Entities;
+using Bookify.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Bookify.Data.Repositories;
@@ -54,6 +55,28 @@ public class RoomRepository : GenericRepository<Room>, IRoomRepository
                 {
                     query = query.Where(r => r.RoomType.Capacity >= totalGuests);
                 }
+            }
+
+            // Text search - search in room type name, description, and amenities
+            if (!string.IsNullOrWhiteSpace(filter.SearchText))
+            {
+                var searchTerm = filter.SearchText.ToLower();
+                query = query.Where(r => 
+                    r.RoomType.Name.ToLower().Contains(searchTerm) ||
+                    (r.RoomType.Description != null && r.RoomType.Description.ToLower().Contains(searchTerm)) ||
+                    (r.RoomType.Amenities != null && r.RoomType.Amenities.ToLower().Contains(searchTerm)) ||
+                    r.RoomNumber.Contains(searchTerm)
+                );
+            }
+
+            // Filter by favorites
+            if (filter.FavoritesOnly == true && !string.IsNullOrWhiteSpace(filter.UserId))
+            {
+                var favoriteRoomIds = await _context.FavoriteRooms
+                    .Where(f => f.UserId == filter.UserId)
+                    .Select(f => f.RoomId)
+                    .ToListAsync();
+                query = query.Where(r => favoriteRoomIds.Contains(r.Id));
             }
         }
 

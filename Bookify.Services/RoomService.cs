@@ -1,7 +1,7 @@
 using Bookify.Core.DTOs;
 using Bookify.Core.ViewModels;
 using Bookify.Data.Entities;
-using Bookify.Data.Repositories;
+using Bookify.Data.Interfaces;
 using Bookify.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 

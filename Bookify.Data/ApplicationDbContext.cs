@@ -17,6 +17,8 @@ public class ApplicationDbContext : IdentityDbContext
     public DbSet<RoomImage> RoomImages { get; set; }
     public DbSet<Booking> Bookings { get; set; }
     public DbSet<Payment> Payments { get; set; }
+    public DbSet<RoomFeedback> RoomFeedbacks { get; set; }
+    public DbSet<FavoriteRoom> FavoriteRooms { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -69,6 +71,26 @@ public class ApplicationDbContext : IdentityDbContext
                 .WithMany(b => b.Payments)
                 .HasForeignKey(p => p.BookingId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure RoomFeedback
+        builder.Entity<RoomFeedback>(entity =>
+        {
+            entity.HasIndex(e => new { e.RoomId, e.UserId });
+            entity.HasOne(rf => rf.Room)
+                .WithMany()
+                .HasForeignKey(rf => rf.RoomId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure FavoriteRoom
+        builder.Entity<FavoriteRoom>(entity =>
+        {
+            entity.HasIndex(e => new { e.UserId, e.RoomId }).IsUnique();
+            entity.HasOne(fr => fr.Room)
+                .WithMany()
+                .HasForeignKey(fr => fr.RoomId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

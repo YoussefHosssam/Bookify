@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Bookify.Data.Repositories;
 using Bookify.Data.Entities;
 using Microsoft.EntityFrameworkCore;
+using Bookify.Data.Interfaces;
 
 namespace Bookify.Web.Areas.Admin.Controllers;
 
@@ -83,12 +83,40 @@ public class RoomTypesController : Controller
         var roomType = await _unitOfWork.RoomTypes.GetByIdAsync(id);
         if (roomType == null)
         {
-            return NotFound();
+            TempData["Error"] = "Room type not found.";
+            return RedirectToAction(nameof(Index));
         }
 
-        _unitOfWork.RoomTypes.Remove(roomType);
-        await _unitOfWork.CommitAsync();
-        TempData["Success"] = "Room type deleted successfully.";
+        // Check if there are any rooms using this room type
+        var roomsUsingType = await _unitOfWork.Rooms.GetAllAsync();
+        var roomsCount = roomsUsingType.Count(r => r.RoomTypeId == id);
+        
+        if (roomsCount > 0)
+        {
+            TempData["Error"] = $"Cannot delete room type '{roomType.Name}' because it is being used by {roomsCount} room(s). Please delete or reassign the rooms first.";
+            _logger.LogWarning("Attempted to delete room type {RoomTypeId} ({RoomTypeName}) which has {RoomsCount} associated rooms", 
+                id, roomType.Name, roomsCount);
+            return RedirectToAction(nameof(Index));
+        }
+
+        try
+        {
+            _unitOfWork.RoomTypes.Remove(roomType);
+            await _unitOfWork.CommitAsync();
+            TempData["Success"] = "Room type deleted successfully.";
+            _logger.LogInformation("Room type {RoomTypeId} ({RoomTypeName}) deleted successfully", id, roomType.Name);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Error deleting room type {RoomTypeId}", id);
+            TempData["Error"] = "An error occurred while deleting the room type. It may be referenced by other records.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error deleting room type {RoomTypeId}", id);
+            TempData["Error"] = "An unexpected error occurred while deleting the room type.";
+        }
+
         return RedirectToAction(nameof(Index));
     }
 }

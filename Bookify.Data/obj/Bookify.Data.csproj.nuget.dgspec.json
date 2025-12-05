@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\DEPI_NET\\CursorMVC\\Bookify.Data\\Bookify.Data.csproj": {}
+    "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Data\\Bookify.Data.csproj": {}
   },
   "projects": {
-    "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj": {
+    "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj",
+        "projectUniqueName": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj",
         "projectName": "Bookify.Core",
-        "projectPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj",
+        "projectPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj",
         "packagesPath": "C:\\Users\\hp\\.nuget\\packages\\",
-        "outputPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\obj\\",
+        "outputPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -69,14 +69,14 @@
         }
       }
     },
-    "D:\\DEPI_NET\\CursorMVC\\Bookify.Data\\Bookify.Data.csproj": {
+    "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Data\\Bookify.Data.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\DEPI_NET\\CursorMVC\\Bookify.Data\\Bookify.Data.csproj",
+        "projectUniqueName": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Data\\Bookify.Data.csproj",
         "projectName": "Bookify.Data",
-        "projectPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Data\\Bookify.Data.csproj",
+        "projectPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Data\\Bookify.Data.csproj",
         "packagesPath": "C:\\Users\\hp\\.nuget\\packages\\",
-        "outputPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Data\\obj\\",
+        "outputPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Data\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -97,8 +97,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj": {
-                "projectPath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Core\\Bookify.Core.csproj"
+              "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj": {
+                "projectPath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Core\\Bookify.Core.csproj"
               }
             }
           }

@@ -23,22 +23,6 @@ public class PaymentController : Controller
     }
 
     [HttpPost]
-    [Authorize]
-    public async Task<IActionResult> CreatePaymentIntent(string bookingNumber, decimal amount, string currency)
-    {
-        try
-        {
-            var clientSecret = await _paymentService.CreatePaymentIntentAsync(amount, currency, bookingNumber);
-            return Json(new { clientSecret });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating payment intent");
-            return BadRequest(new { error = "Failed to create payment intent" });
-        }
-    }
-
-    [HttpPost]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Webhook()
     {

@@ -1,6 +1,20 @@
 ﻿@model IEnumerable<Bookify.Core.DTOs.RoomDto>
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<IdentityUser> SignInManager
+@inject UserManager<IdentityUser> UserManager
+@inject Bookify.Services.Interfaces.IFavoriteRoomService FavoriteRoomService
 @{
     ViewData["Title"] = "Experience Luxury. Discover Comfort.";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var favoriteRoomIds = new List<int>();
+    if (isAuthenticated)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (!string.IsNullOrEmpty(userId))
+        {
+            favoriteRoomIds = (await FavoriteRoomService.GetFavoriteRoomIdsAsync(userId)).ToList();
+        }
+    }
 }
 
 <section class="hero-lux">
@@ -14,7 +28,7 @@
         <p class="eyebrow-text">Bookify Private Collection</p>
         <h1>Experience Luxury.<br />Discover Comfort.</h1>
         <p class="hero-subtext">
-            Curated stays, signature service, and iconic destinations inspired by the world’s most celebrated hotels.
+            Curated stays, signature service, and iconic destinations across Egypt's most celebrated locations.
         </p>
         <div class="hero-ctas">
             <a href="@Url.Action("Index", "Rooms")" class="btn btn-gold btn-lg">
@@ -30,8 +44,8 @@
                 Boutique Suites
             </div>
             <div>
-                <span>60+</span>
-                Global Destinations
+                <span>25+</span>
+                Egyptian Destinations
             </div>
             <div>
                 <span>4.9/5</span>
@@ -54,9 +68,20 @@
             <div class="col-lg-4 col-md-6">
                 <article class="room-highlight-card">
                     <div class="room-card-media">
-                        <div class="wishlist-heart"><i class="bi bi-heart"></i></div>
+                        @if (isAuthenticated)
+                        {
+                            <button type="button" class="wishlist-heart favorite-btn" data-room-id="@room.Id" style="cursor: pointer; border: none; background: rgba(255,255,255,0.8);">
+                                <i class="bi @(favoriteRoomIds.Contains(room.Id) ? "bi-heart-fill" : "bi-heart")"></i>
+                            </button>
+                        }
+                        else
+                        {
+                            <div class="wishlist-heart" style="cursor: pointer;" onclick="window.location.href='@Url.Action("Login", "Account")'">
+                                <i class="bi bi-heart"></i>
+                            </div>
+                        }
                         <img src="@fallbackImage" alt="@room.RoomTypeName" loading="lazy" />
-                        <div class="price-pill">$@room.BasePricePerNight<span>/night</span></div>
+                        <div class="price-pill">EGP @room.BasePricePerNight<span>/night</span></div>
                     </div>
                     <div class="room-card-body">
                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -144,45 +169,67 @@
     <div class="container-xl">
         <div class="section-heading text-center text-light">
             <p class="eyebrow-text text-light">Guest Stories</p>
-            <h2 class="text-white">“Every detail felt curated just for us.”</h2>
+            <h2 class="text-white">"Every detail felt curated just for us."</h2>
         </div>
         <div class="row g-4">
-            <div class="col-md-4">
-                <article class="testimonial-card">
-                    <div class="avatar">
-                        <img src="/images/avatars/guest-1.jpg" alt="Guest" />
+            @{
+                var latestFeedbacks = ViewBag.LatestFeedbacks as IEnumerable<Bookify.Core.DTOs.RoomFeedbackDto> ?? new List<Bookify.Core.DTOs.RoomFeedbackDto>();
+                var feedbackList = latestFeedbacks.Take(3).ToList();
+            }
+            @if (feedbackList.Any())
+            {
+                @foreach (var feedback in feedbackList)
+                {
+                    // Get first 2 characters of the name for avatar
+                    string initials = "GU"; // Default
+                    if (!string.IsNullOrWhiteSpace(feedback.UserName))
+                    {
+                        var nameParts = feedback.UserName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                        if (nameParts.Length >= 2)
+                        {
+                            // First letter of first name + first letter of last name
+                            var first = nameParts[0].Length > 0 ? nameParts[0][0].ToString() : "";
+                            var last = nameParts[nameParts.Length - 1].Length > 0 ? nameParts[nameParts.Length - 1][0].ToString() : "";
+                            initials = (first + last).ToUpper();
+                        }
+                        else if (nameParts.Length == 1 && nameParts[0].Length >= 2)
+                        {
+                            // First 2 characters of single name
+                            initials = nameParts[0].Substring(0, 2).ToUpper();
+                        }
+                        else if (nameParts.Length == 1 && nameParts[0].Length == 1)
+                        {
+                            // Single character - duplicate it
+                            initials = (nameParts[0] + nameParts[0]).ToUpper();
+                        }
+                    }
+                    var avatarUrl = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(initials)}&background=d4af37&color=fff&size=128&length=2&bold=true";
+                    <div class="col-md-4">
+                        <article class="testimonial-card">
+                            <div class="avatar">
+                                <img src="@avatarUrl" alt="@feedback.UserName" />
+                            </div>
+                            <div class="rating mb-2" style="color: #d4af37;">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi @(i <= feedback.Rating ? "bi-star-fill" : "bi-star")" style="color: @(i <= feedback.Rating ? "#d4af37" : "#ddd");"></i>
+                                }
+                            </div>
+                            <p>"@feedback.Comment"</p>
+                            <div class="testimonial-meta">
+                                <strong>@feedback.UserName</strong>
+                                <span>@feedback.RoomTypeName</span>
+                            </div>
+                        </article>
                     </div>
-                    <p>“Bookify arranged a private sunset cruise within hours. Seamless and unforgettable.”</p>
-                    <div class="testimonial-meta">
-                        <strong>Olivia M.</strong>
-                        <span>Paris Collection</span>
-                    </div>
-                </article>
-            </div>
-            <div class="col-md-4">
-                <article class="testimonial-card">
-                    <div class="avatar">
-                        <img src="/images/avatars/guest-2.jpg" alt="Guest" />
-                    </div>
-                    <p>“From the welcome tea ceremony to the midnight butler, hospitality felt instinctive.”</p>
-                    <div class="testimonial-meta">
-                        <strong>Marcus V.</strong>
-                        <span>Kyoto Pavilion</span>
-                    </div>
-                </article>
-            </div>
-            <div class="col-md-4">
-                <article class="testimonial-card">
-                    <div class="avatar">
-                        <img src="/images/avatars/guest-3.jpg" alt="Guest" />
-                    </div>
-                    <p>“The booking experience mirrored a private members club—refined, intuitive, exclusive.”</p>
-                    <div class="testimonial-meta">
-                        <strong>Sophia L.</strong>
-                        <span>New York Penthouse</span>
-                    </div>
-                </article>
-            </div>
+                }
+            }
+            else
+            {
+                <div class="col-12">
+                    <p class="text-center text-light">No guest stories yet. Be the first to share your experience!</p>
+                </div>
+            }
         </div>
     </div>
 </section>
@@ -196,3 +243,46 @@
         <a href="@Url.Action("Contact", "Home")" class="btn btn-gold btn-lg">Connect with Concierge</a>
     </div>
 </section>
+
+@section Scripts {
+    @if (isAuthenticated)
+    {
+        <script>
+            // Favorite button functionality
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                btn.addEventListener('click', async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const roomId = parseInt(this.dataset.roomId);
+                    const icon = this.querySelector('i');
+                    
+                    try {
+                        const response = await fetch('@Url.Action("ToggleFavorite", "Rooms")', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ roomId: roomId })
+                        });
+                        
+                        const result = await response.json();
+                        if (result.success) {
+                            if (result.isFavorite) {
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                                toastr.success('Added to favorites', 'Success');
+                            } else {
+                                icon.classList.remove('bi-heart-fill');
+                                icon.classList.add('bi-heart');
+                                toastr.info('Removed from favorites', 'Info');
+                            }
+                        }
+                    } catch (error) {
+                        toastr.error('Error updating favorite', 'Error');
+                    }
+                });
+            });
+        </script>
+    }
+}

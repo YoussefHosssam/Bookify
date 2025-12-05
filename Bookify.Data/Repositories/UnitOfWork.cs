@@ -1,3 +1,5 @@
+using Bookify.Data.Interfaces;
+
 namespace Bookify.Data.Repositories;
 
 public class UnitOfWork : IUnitOfWork
@@ -8,6 +10,8 @@ public class UnitOfWork : IUnitOfWork
     private IGenericRepository<Entities.RoomType>? _roomTypes;
     private IGenericRepository<Entities.RoomImage>? _roomImages;
     private IGenericRepository<Entities.Payment>? _payments;
+    private IGenericRepository<Entities.RoomFeedback>? _roomFeedbacks;
+    private IGenericRepository<Entities.FavoriteRoom>? _favoriteRooms;
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -56,6 +60,24 @@ public class UnitOfWork : IUnitOfWork
         {
             _payments ??= new GenericRepository<Entities.Payment>(_context);
             return _payments;
+        }
+    }
+
+    public IGenericRepository<Entities.RoomFeedback> RoomFeedbacks
+    {
+        get
+        {
+            _roomFeedbacks ??= new GenericRepository<Entities.RoomFeedback>(_context);
+            return _roomFeedbacks;
+        }
+    }
+
+    public IGenericRepository<Entities.FavoriteRoom> FavoriteRooms
+    {
+        get
+        {
+            _favoriteRooms ??= new GenericRepository<Entities.FavoriteRoom>(_context);
+            return _favoriteRooms;
         }
     }
 

@@ -1,10 +1,14 @@
 using Bookify.Data;
+using Bookify.Data.Interfaces;
 using Bookify.Data.Repositories;
 using Bookify.Services;
 using Bookify.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -47,7 +51,52 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 .AddRoles<IdentityRole>()
 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-// Configure Cookie Authentication to use custom login/logout paths
+// Configure JWT Authentication
+var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] 
+    ?? throw new InvalidOperationException("JWT SecretKey not configured");
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "Bookify";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BookifyUsers";
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+        ValidateIssuer = true,
+        ValidIssuer = jwtIssuer,
+        ValidateAudience = true,
+        ValidAudience = jwtAudience,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
+    
+    // For API requests, read token from Authorization header
+    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+            if (!string.IsNullOrEmpty(token))
+            {
+                context.Token = token;
+            }
+            // Also check for token in cookie (for MVC views)
+            else if (context.Request.Cookies.ContainsKey("jwt_token"))
+            {
+                context.Token = context.Request.Cookies["jwt_token"];
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+
+// Configure Cookie Authentication to use custom login/logout paths (for backward compatibility)
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -70,6 +119,9 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IRoomFeedbackService, RoomFeedbackService>();
+builder.Services.AddScoped<IFavoriteRoomService, FavoriteRoomService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 // Configure Health Checks
 builder.Services.AddHealthChecks()
@@ -111,29 +163,22 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.MapRazorPages();
-
-// Seed database
 try
 {
     using (var scope = app.Services.CreateScope())
     {
         var services = scope.ServiceProvider;
         var context = services.GetRequiredService<ApplicationDbContext>();
-        var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
         
         // Run migrations synchronously
         context.Database.Migrate();
-        
-        // Seed roles and admin user - use GetAwaiter().GetResult() to run async code synchronously
-        SeedData.InitializeAsync(context, userManager, roleManager).GetAwaiter().GetResult();
-        Log.Information("Database seeding completed successfully.");
+        Log.Information("Database migrations completed successfully.");
     }
 }
 catch (Exception ex)
 {
-    Log.Error(ex, "An error occurred while seeding the database.");
-    // Don't stop the app if seeding fails
+    Log.Error(ex, "An error occurred while running database migrations.");
+    // Don't stop the app if migrations fail
 }
 
 Log.Information("Application starting...");

@@ -90,6 +90,35 @@ namespace Bookify.Data.Migrations
                     b.ToTable("Bookings");
                 });
 
+            modelBuilder.Entity("Bookify.Data.Entities.FavoriteRoom", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId");
+
+                    b.HasIndex("UserId", "RoomId")
+                        .IsUnique();
+
+                    b.ToTable("FavoriteRooms");
+                });
+
             modelBuilder.Entity("Bookify.Data.Entities.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -167,6 +196,46 @@ namespace Bookify.Data.Migrations
                     b.HasIndex("RoomTypeId");
 
                     b.ToTable("Rooms");
+                });
+
+            modelBuilder.Entity("Bookify.Data.Entities.RoomFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoomId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoomId", "UserId");
+
+                    b.ToTable("RoomFeedbacks");
                 });
 
             modelBuilder.Entity("Bookify.Data.Entities.RoomImage", b =>
@@ -453,6 +522,17 @@ namespace Bookify.Data.Migrations
                     b.Navigation("RoomType");
                 });
 
+            modelBuilder.Entity("Bookify.Data.Entities.FavoriteRoom", b =>
+                {
+                    b.HasOne("Bookify.Data.Entities.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
+                });
+
             modelBuilder.Entity("Bookify.Data.Entities.Payment", b =>
                 {
                     b.HasOne("Bookify.Data.Entities.Booking", "Booking")
@@ -473,6 +553,17 @@ namespace Bookify.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("RoomType");
+                });
+
+            modelBuilder.Entity("Bookify.Data.Entities.RoomFeedback", b =>
+                {
+                    b.HasOne("Bookify.Data.Entities.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("Bookify.Data.Entities.RoomImage", b =>

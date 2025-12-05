@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "qjFsDGvK2Xc=",
+  "dgSpecHash": "p8DoqRnqOmM=",
   "success": true,
-  "projectFilePath": "D:\\DEPI_NET\\CursorMVC\\Bookify.Data\\Bookify.Data.csproj",
+  "projectFilePath": "D:\\DEPI_NET\\CursorV2\\Bookify\\Bookify.Data\\Bookify.Data.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\hp\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\hp\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",

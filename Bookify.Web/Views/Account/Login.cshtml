@@ -1,4 +1,4 @@
-@model Bookify.Web.Controllers.LoginViewModel
+@model Bookify.Web.Models.LoginViewModel
 @{
     ViewData["Title"] = "Login";
     var returnUrl = ViewData["ReturnUrl"] as string ?? Url.Action("Index", "Home");
@@ -26,32 +26,30 @@
             </div>
         }
 
-        <form asp-action="Login" method="post" asp-route-returnUrl="@returnUrl">
-            @Html.AntiForgeryToken()
-            
-            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+        <form id="loginForm">
+            <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
 
             <div class="mb-3">
-                <label asp-for="Email" class="form-label"></label>
-                <input asp-for="Email" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter your email" />
-                <span asp-validation-for="Email" class="text-danger"></span>
+                <label for="email" class="form-label">Email or Username</label>
+                <input type="text" id="email" name="email" class="form-control" autocomplete="username" aria-required="true" placeholder="Enter your email or username" required />
+                <span class="text-danger d-none" id="emailError"></span>
             </div>
 
             <div class="mb-3">
-                <label asp-for="Password" class="form-label"></label>
-                <input asp-for="Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter your password" />
-                <span asp-validation-for="Password" class="text-danger"></span>
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="Enter your password" required />
+                <span class="text-danger d-none" id="passwordError"></span>
             </div>
 
             <div class="mb-3 form-check">
-                <input class="form-check-input" asp-for="RememberMe" />
-                <label class="form-check-label" asp-for="RememberMe">
-                    @Html.DisplayNameFor(m => m.RememberMe)
+                <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe" />
+                <label class="form-check-label" for="rememberMe">
+                    Remember me
                 </label>
             </div>
 
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary btn-lg">
+                <button type="submit" class="btn btn-primary btn-lg" id="loginButton">
                     <i class="bi bi-box-arrow-in-right"></i> Login
                 </button>
             </div>
@@ -73,6 +71,82 @@
 </section>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('rememberMe').checked;
+            const returnUrl = '@returnUrl';
+            const errorDiv = document.getElementById('loginError');
+            const loginButton = document.getElementById('loginButton');
+            const originalText = loginButton.innerHTML;
+            
+            // Clear previous errors
+            errorDiv.classList.add('d-none');
+            errorDiv.textContent = '';
+            document.getElementById('emailError').classList.add('d-none');
+            document.getElementById('passwordError').classList.add('d-none');
+            
+            // Validate
+            if (!email || !password) {
+                errorDiv.textContent = 'Please enter both email and password.';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+            
+            // Disable button and show loading
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Logging in...';
+            
+            try {
+                const response = await fetch('@Url.Action("Login", "Account")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        rememberMe: rememberMe
+                    }),
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.token) {
+                    // Store token in localStorage
+                    if (typeof JwtAuth !== 'undefined') {
+                        JwtAuth.setToken(result.token);
+                    } else {
+                        localStorage.setItem('jwt_token', result.token);
+                    }
+                    
+                    // Show success message
+                    toastr.success('Login successful!', 'Success');
+                    
+                    // Redirect after short delay
+                    setTimeout(() => {
+                        window.location.href = result.returnUrl || '@Url.Action("Index", "Home")';
+                    }, 500);
+                } else {
+                    // Show error
+                    errorDiv.textContent = result.message || 'Login failed. Please check your credentials.';
+                    errorDiv.classList.remove('d-none');
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = originalText;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.classList.remove('d-none');
+                loginButton.disabled = false;
+                loginButton.innerHTML = originalText;
+            }
+        });
+    </script>
 }
 

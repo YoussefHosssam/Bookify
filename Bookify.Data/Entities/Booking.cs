@@ -32,7 +32,7 @@ public class Booking
     public decimal TotalAmount { get; set; }
 
     [MaxLength(10)]
-    public string Currency { get; set; } = "USD";
+    public string Currency { get; set; } = "EGP";
 
     [MaxLength(50)]
     public string Status { get; set; } = BookingStatus.PendingPayment.ToString();

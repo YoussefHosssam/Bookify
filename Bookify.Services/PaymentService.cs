@@ -1,7 +1,7 @@
 using Bookify.Core.Enums;
 using Bookify.Core.ViewModels;
 using Bookify.Data.Entities;
-using Bookify.Data.Repositories;
+using Bookify.Data.Interfaces;
 using Bookify.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Stripe;
@@ -29,7 +29,7 @@ public class PaymentService : IPaymentService
         StripeConfiguration.ApiKey = _stripeSecretKey;
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(CartViewModel cart, string bookingNumber, string userId, string? customerEmail = null)
+    public async Task<string> CreateCheckoutSessionAsync(CartViewModel cart, IEnumerable<string> bookingNumbers, string userId, string? customerEmail = null)
     {
         var lineItems = new List<SessionLineItemOptions>();
 
@@ -54,6 +54,9 @@ public class PaymentService : IPaymentService
             });
         }
 
+        // Store all booking numbers as comma-separated string
+        var bookingNumbersString = string.Join(",", bookingNumbers);
+        
         var options = new SessionCreateOptions
         {
             SuccessUrl = _successUrl,
@@ -62,7 +65,7 @@ public class PaymentService : IPaymentService
             Mode = "payment",
             Metadata = new Dictionary<string, string>
             {
-                { "bookingNumber", bookingNumber },
+                { "bookingNumbers", bookingNumbersString },
                 { "userId", userId }
             }
         };
@@ -76,29 +79,6 @@ public class PaymentService : IPaymentService
         var session = await service.CreateAsync(options);
 
         return session.Url ?? string.Empty;
-    }
-
-    public async Task<string> CreatePaymentIntentAsync(decimal amount, string currency, string bookingNumber)
-    {
-        // Legacy method - kept for backward compatibility
-        var options = new PaymentIntentCreateOptions
-        {
-            Amount = (long)(amount * 100),
-            Currency = currency.ToLower(),
-            Metadata = new Dictionary<string, string>
-            {
-                { "bookingNumber", bookingNumber }
-            },
-            AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
-            {
-                Enabled = true
-            }
-        };
-
-        var service = new PaymentIntentService();
-        var paymentIntent = await service.CreateAsync(options);
-
-        return paymentIntent.ClientSecret;
     }
 
     public async Task<bool> VerifyWebhookSignatureAsync(string payload, string signature)
@@ -132,56 +112,70 @@ public class PaymentService : IPaymentService
             var sessionId = session.GetProperty("id").GetString();
             var paymentStatus = session.GetProperty("payment_status").GetString();
             
-            // Get booking number from metadata
-            string? bookingNumber = null;
+            // Get booking numbers from metadata (comma-separated)
+            string? bookingNumbersString = null;
             if (session.TryGetProperty("metadata", out var metadata))
             {
-                if (metadata.TryGetProperty("bookingNumber", out var bookingNumberProp))
+                // Try new format first (bookingNumbers)
+                if (metadata.TryGetProperty("bookingNumbers", out var bookingNumbersProp))
                 {
-                    bookingNumber = bookingNumberProp.GetString();
+                    bookingNumbersString = bookingNumbersProp.GetString();
+                }
+                // Fallback to old format (bookingNumber) for backward compatibility
+                else if (metadata.TryGetProperty("bookingNumber", out var bookingNumberProp))
+                {
+                    bookingNumbersString = bookingNumberProp.GetString();
                 }
             }
 
-            if (!string.IsNullOrEmpty(bookingNumber) && paymentStatus == "paid")
+            if (!string.IsNullOrEmpty(bookingNumbersString) && paymentStatus == "paid")
             {
-                var booking = await _unitOfWork.Bookings.GetByBookingNumberAsync(bookingNumber);
-                if (booking != null)
+                // Split booking numbers (support both single and multiple)
+                var bookingNumbers = bookingNumbersString.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                
+                foreach (var bookingNumber in bookingNumbers)
                 {
-                    // Update booking status to Confirmed
-                    booking.Status = Core.Enums.BookingStatus.Confirmed.ToString();
-                    booking.StripePaymentIntentId = sessionId; // Store session ID
-                    booking.UpdatedAt = DateTime.UtcNow;
-
-                    // Check if payment record already exists
-                    var existingPayment = (await _unitOfWork.Payments.GetAllAsync())
-                        .FirstOrDefault(p => p.ProviderTransactionId == sessionId);
-
-                    if (existingPayment == null)
+                    var booking = await _unitOfWork.Bookings.GetByBookingNumberAsync(bookingNumber.Trim());
+                    if (booking != null)
                     {
-                        // Create payment record
-                        var payment = new Payment
+                        // Update booking status to Confirmed
+                        booking.Status = Core.Enums.BookingStatus.Confirmed.ToString();
+                        booking.StripePaymentIntentId = sessionId; // Store session ID
+                        booking.UpdatedAt = DateTime.UtcNow;
+
+                        // Check if payment record already exists for this specific booking
+                        var existingPayment = (await _unitOfWork.Payments.GetAllAsync())
+                            .FirstOrDefault(p => p.ProviderTransactionId == sessionId && p.BookingId == booking.Id);
+
+                        if (existingPayment == null)
                         {
-                            BookingId = booking.Id,
-                            PaymentProvider = PaymentProvider.Stripe.ToString(),
-                            ProviderTransactionId = sessionId ?? string.Empty,
-                            Amount = booking.TotalAmount,
-                            Currency = booking.Currency,
-                            Status = PaymentStatus.Succeeded.ToString(),
-                            CreatedAt = DateTime.UtcNow
-                        };
+                            // Create payment record for this booking
+                            var payment = new Payment
+                            {
+                                BookingId = booking.Id,
+                                PaymentProvider = PaymentProvider.Stripe.ToString(),
+                                ProviderTransactionId = sessionId ?? string.Empty,
+                                Amount = booking.TotalAmount,
+                                Currency = booking.Currency,
+                                Status = PaymentStatus.Succeeded.ToString(),
+                                CreatedAt = DateTime.UtcNow
+                            };
 
-                        await _unitOfWork.Payments.AddAsync(payment);
-                    }
-                    else
-                    {
-                        // Update existing payment
-                        existingPayment.Status = PaymentStatus.Succeeded.ToString();
-                        _unitOfWork.Payments.Update(existingPayment);
-                    }
+                            await _unitOfWork.Payments.AddAsync(payment);
+                        }
+                        else
+                        {
+                            // Update existing payment
+                            existingPayment.Status = PaymentStatus.Succeeded.ToString();
+                            _unitOfWork.Payments.Update(existingPayment);
+                        }
 
-                    _unitOfWork.Bookings.Update(booking);
-                    await _unitOfWork.CommitAsync();
+                        _unitOfWork.Bookings.Update(booking);
+                    }
                 }
+                
+                // Commit all changes in a single transaction
+                await _unitOfWork.CommitAsync();
             }
         }
         else if (eventType == "payment_intent.succeeded")

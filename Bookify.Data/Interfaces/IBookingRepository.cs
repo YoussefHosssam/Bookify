@@ -1,6 +1,6 @@
 using Bookify.Data.Entities;
 
-namespace Bookify.Data.Repositories;
+namespace Bookify.Data.Interfaces;
 
 public interface IBookingRepository : IGenericRepository<Booking>
 {
